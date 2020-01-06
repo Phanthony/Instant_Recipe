@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:weightSum="1.0"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatButton
+            android:layout_margin="13dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/uploadReceiptButton"
+            android:text="@string/upload_receipt"
+            android:layout_weight="0.5"
+            android:textSize="30sp"/>
+    <androidx.appcompat.widget.AppCompatButton
+            android:layout_margin="13dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/takePictureButton"
+            android:text="@string/take_pic"
+            android:layout_weight="0.5"
+            android:textSize="30sp"/>
+</LinearLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/nav_graph"
+            app:startDestination="@id/findRecipeFragment">
+    <fragment android:id="@+id/findRecipeFragment" android:name="com.phanthony.instantrecipe.ui.FindRecipeFragment"
+              android:label="FindRecipeFragment"/>
+    <fragment android:id="@+id/selectPicFragment" android:name="com.phanthony.instantrecipe.ui.SelectPicFragment"
+              android:label="SelectPicFragment"/>
+    <fragment android:id="@+id/ingredientFragment" android:name="com.phanthony.instantrecipe.ui.IngredientFragment"
+              android:label="IngredientFragment"/>
+    <fragment android:id="@+id/recipeFragment" android:name="com.phanthony.instantrecipe.ui.RecipeFragment"
+              android:label="RecipeFragment"/>
+</navigation>

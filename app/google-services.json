@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "214178065963",
+    "firebase_url": "https://instant-recipe-3e740.firebaseio.com",
+    "project_id": "instant-recipe-3e740",
+    "storage_bucket": "instant-recipe-3e740.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214178065963:android:27a81340af78b0c4a9846e",
+        "android_client_info": {
+          "package_name": "com.phanthony.instantrecipe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "214178065963-9hpvhfmbq395r4bl49cjf0iv9m78qold.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvMspamhKGGXvo4-dH-k3V78jG76pCEN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "214178065963-9hpvhfmbq395r4bl49cjf0iv9m78qold.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Instant Recipe</string>
+    <string name="upload_receipt">Upload a receipt</string>
+    <string name="take_pic">Take a picture</string>
+    <string name="scan_pic">Scan receipt</string>
+    <string name="add_ing">Add an ingredient</string>
+    <string name="find_recipe">Find recipes</string>
+    <string name="searchHint">Search an ingredient</string>
+    <string name="ing_Title">Ingredients</string>
+    <string name="scan_Title">Scan</string>
+    <string name="scan_start">Scanning image</string>
+    <string name="scan_finish">Finished Scanning Image</string>
+    <string name="no_recipe">Could not find any new recipes</string>
+    <string name="recipes">Recipes</string>
+</resources>
