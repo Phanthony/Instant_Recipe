@@ -20,4 +20,9 @@ interface RecipeDao {
     @Query("SELECT * FROM RECIPE_TABLE")
     fun getRecipe(): DataSource.Factory<Int,SpoonacularResult>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertInstruction(instruction: RecipeInstruction)
+
+    //@Query("SELECT * FROM Recipe_Steps_Table WHERE recipeId LIKE :id")
+    //fun findInstruction(id:Int): List<RecipeInstruction>
 }

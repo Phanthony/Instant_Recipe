@@ -42,15 +42,15 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProviders.of(this)[RecipeViewModel::class.java]
 
-        val ingredientMap = hashMapOf<String,Int>()
+        val ingredientMap = hashMapOf<String,String>()
 
         //get ingredients from ingredients.csv
         CoroutineScope(Dispatchers.IO).launch{
-            val ingredients = resources.openRawResource(R.raw.ingredients)
+            val ingredients = resources.openRawResource(R.raw.test)
             csvReader().open(ingredients) {
                 readAllAsSequence().forEach {
                     val split = it.first().split(";")
-                    ingredientMap[split.first()] = split.last().toInt()
+                    ingredientMap[split.first()] = split.last()
                 }
             }
 
@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNav(navController)
 
         startToast = Toast.makeText(this, getString(R.string.scan_start), Toast.LENGTH_LONG)
-        finishToast = Toast.makeText(this, getString(R.string.scan_finish), Toast.LENGTH_LONG)
+        finishToast = Toast.makeText(this, getString(R.string.scan_finish), Toast.LENGTH_SHORT)
 
         observeScanner()
 

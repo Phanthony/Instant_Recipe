@@ -19,7 +19,7 @@ class SelectPicFragment : Fragment() {
 
     var image: Bitmap? = null
 
-    lateinit var ingredientMap: HashMap<String, Int>
+    lateinit var ingredientMap: HashMap<String, String>
     lateinit var viewModel: RecipeViewModel
     lateinit var nav: NavController
     lateinit var loading: RelativeLayout

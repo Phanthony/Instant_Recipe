@@ -46,7 +46,7 @@ dependencies {
     def nav_version = "2.1.0"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+    implementation "androidx.lifecycle:lifecycle-extensions:$nav_version"
 
     // CSV Parser
     implementation 'com.github.doyaaaaaken:kotlin-csv-jvm:0.7.3'
@@ -56,6 +56,7 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
     implementation "com.squareup.retrofit2:converter-moshi:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
 
     // Glide
     def glideVersion = "4.1.0"
@@ -73,6 +74,25 @@ dependencies {
     def gsonVersion = "2.8.6"
     implementation "com.google.code.gson:gson:$gsonVersion"
     implementation 'androidx.paging:paging-runtime-ktx:2.1.1'
+
+    // JUnit
+    def junitVersion = "4.12"
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "junit:junit:$junitVersion"
+
+    // Truth
+    def truthVersion = "0.42"
+    testImplementation "com.google.truth:truth:$truthVersion"
+    androidTestImplementation "com.google.truth:truth:$truthVersion"
+
+    // Mockito
+    def mockitoVersion = "2.27.0"
+    def mockitoKotlinVersion = "2.1.0"
+    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion", {
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.mockito'
+    }
 
 }
 

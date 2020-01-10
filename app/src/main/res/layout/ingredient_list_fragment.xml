@@ -6,19 +6,17 @@
         android:layout_height="match_parent"
         android:weightSum="1.0"
 >
-
-    <androidx.recyclerview.widget.RecyclerView
-          android:id="@+id/ingredientList"
-          android:layout_width="match_parent"
-          android:layout_height="0dp"
-          android:layout_weight="0.9"/>
-
     <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.1"
-            android:gravity="center"
-    >
+            android:layout_height="wrap_content">
+        <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/ingredientTextBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+        />
+
         <androidx.appcompat.widget.AppCompatButton
                 android:layout_marginEnd="8dp"
                 android:text="@string/add_ing"
@@ -26,6 +24,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
         />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:layout_marginTop="10dp"
+            android:id="@+id/ingredientList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.9"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.1"
+            android:gravity="center"
+    >
 
         <androidx.appcompat.widget.AppCompatButton
                 android:text="@string/find_recipe"

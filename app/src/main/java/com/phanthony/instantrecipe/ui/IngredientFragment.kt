@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -43,7 +44,9 @@ class IngredientFragment: Fragment() {
 
         val button = view.findViewById<AppCompatButton>(R.id.findRecipeButton)
         button.setOnClickListener {
-            viewModel.getRecipes(this.context!!)
+            Toast.makeText(context, R.string.search_recipes,Toast.LENGTH_SHORT).show()
+            val set = viewModel.getIngList().value!!
+            viewModel.getRecipes(this.context!!,set)
             nav.navigate(R.id.recipeFragment)
         }
 

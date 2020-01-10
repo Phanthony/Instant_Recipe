@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +18,6 @@ import com.phanthony.instantrecipe.R
 
 class RecipeFragment : Fragment() {
 
-    //var recipeList: ArrayList<SpoonacularResult?> = arrayListOf()
     private lateinit var adapter: RecipeAdapter
     private lateinit var viewModel: RecipeViewModel
 
@@ -28,8 +28,9 @@ class RecipeFragment : Fragment() {
             ViewModelProviders.of(this)[RecipeViewModel::class.java]
         }
 
-        //recipeList.addAll(viewModel.getRecipeList().value!!)
-        adapter = RecipeAdapter(context!!)
+        val nav = activity!!.findNavController(R.id.navHostFragment)
+
+        adapter = RecipeAdapter(context!!, nav, viewModel::getRecipeInstruction)
 
         val recipeList = view.findViewById<RecyclerView>(R.id.recipeList)
         recipeList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)

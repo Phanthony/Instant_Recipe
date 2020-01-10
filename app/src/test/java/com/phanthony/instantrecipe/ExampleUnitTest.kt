@@ -22,4 +22,12 @@ class ExampleUnitTest {
         val res = string.contains(r)
         assertTrue(res)
     }
+
+    @Test
+    fun testRegex2(){
+        val r = Regex("banana")
+        val string = "bananas"
+        val res = string.contains(r)
+        assertTrue(res)
+    }
 }

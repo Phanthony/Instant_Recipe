@@ -5,8 +5,10 @@ import android.content.res.Resources
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.navigation.NavController
 import androidx.paging.PagedList
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -18,9 +20,9 @@ import com.phanthony.instantrecipe.R
 import database.SpoonacularResult
 import java.io.File
 
-class RecipeAdapter(val context: Context) :
-    PagedListAdapter<SpoonacularResult,RecipeAdapter.ViewHolder>(
-        object : DiffUtil.ItemCallback<SpoonacularResult>(){
+class RecipeAdapter(val context: Context, val nav: NavController, val findRecipe: (recipeId: Int) -> Unit) :
+    PagedListAdapter<SpoonacularResult, RecipeAdapter.ViewHolder>(
+        object : DiffUtil.ItemCallback<SpoonacularResult>() {
             override fun areItemsTheSame(oldItem: SpoonacularResult, newItem: SpoonacularResult): Boolean {
                 return oldItem.id == newItem.id
             }
@@ -39,11 +41,12 @@ class RecipeAdapter(val context: Context) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val current = getItem(position)
         holder.name.text = current?.title ?: ""
-        if(current != null) {
-            Glide.with(context).load(current.image)
-                .apply(RequestOptions().circleCrop()).into(holder.image)
-        }
-        else{
+        if (current != null) {
+            Glide.with(context).load(current.image).apply(RequestOptions().circleCrop()).into(holder.image)
+            holder.view.setOnClickListener {
+                findRecipe(current.id)
+            }
+        } else {
             holder.image.background = context.getDrawable(R.drawable.placeholder)
         }
     }
@@ -51,5 +54,6 @@ class RecipeAdapter(val context: Context) :
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name = itemView.findViewById<AppCompatTextView>(R.id.recipeName)
         val image = itemView.findViewById<AppCompatImageView>(R.id.recipeImage)
+        val view = itemView.findViewById<LinearLayout>(R.id.recipeView)
     }
 }
