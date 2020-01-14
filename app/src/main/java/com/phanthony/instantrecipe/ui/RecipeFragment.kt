@@ -15,6 +15,7 @@ import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
+import main.RecipeViewModelFactory
 
 class RecipeFragment : Fragment() {
 
@@ -25,7 +26,7 @@ class RecipeFragment : Fragment() {
         val view = inflater.inflate(R.layout.recipes_fragment,container,false)
 
         viewModel = activity!!.run {
-            ViewModelProviders.of(this)[RecipeViewModel::class.java]
+            ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
         val nav = activity!!.findNavController(R.id.navHostFragment)

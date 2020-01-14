@@ -16,6 +16,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
+import main.RecipeViewModelFactory
 
 class IngredientFragment: Fragment() {
 
@@ -28,7 +29,7 @@ class IngredientFragment: Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.ingredient_list_fragment,container,false)
         viewModel = activity!!.run {
-            ViewModelProviders.of(this)[RecipeViewModel::class.java]
+            ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
         ingList = viewModel.getIngList().value!!

@@ -6,4 +6,10 @@ import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
 class RecipeViewModelUnitTest {
+
+
+
+    fun `setUpSet test 1 `(){
+
+    }
 }

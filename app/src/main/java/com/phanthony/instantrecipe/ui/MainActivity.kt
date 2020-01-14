@@ -1,9 +1,5 @@
 package com.phanthony.instantrecipe.ui
 
-import main.FINISHED
-import main.IDLE
-import main.RecipeViewModel
-import main.SCANNING
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -11,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -20,6 +17,7 @@ import com.phanthony.instantrecipe.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,7 +38,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this,PERMISSIONS,1)
         }
 
-        viewModel = ViewModelProviders.of(this)[RecipeViewModel::class.java]
+        viewModel = ViewModelProviders.of(this,RecipeViewModelFactory(this.application)).get(RecipeViewModel::class.java)
 
         val ingredientMap = hashMapOf<String,String>()
 

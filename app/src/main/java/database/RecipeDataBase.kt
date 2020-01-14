@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 
 @Database(entities = [SpoonacularResult::class, RecipeInstruction::class], version = 1)
 @TypeConverters(TypeConverterIngredient::class,TypeConverterStep::class)
-abstract  class RecipeDataBase: RoomDatabase() {
+abstract class RecipeDataBase: RoomDatabase() {
 
     abstract fun recipeDao(): RecipeDao
 

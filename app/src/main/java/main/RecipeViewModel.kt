@@ -11,34 +11,23 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
-import com.google.firebase.ml.vision.text.FirebaseVisionText
 import com.phanthony.instantrecipe.R
-import database.RecipeInstruction
+import database.RecipeDataBase
 import database.SpoonacularResult
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
-import service.IngredientResults
-import service.SpoonacularApi
-import service.textBody
+import service.SpoonacularService
 
 val IDLE = 0
 val SCANNING = 1
 val FINISHED = 2
 
-class RecipeViewModel(application: Application) : AndroidViewModel(application) {
+class RecipeViewModel(application: Application, db: RecipeDataBase, val service: SpoonacularService) :
+    AndroidViewModel(application) {
 
     private val TAG = "TEXT_FOUND"
-
-    private var db = database.RecipeDataBase.getInstance(getApplication())
     private var recipeDao = db.recipeDao()
     private lateinit var recipeList: LiveData<PagedList<SpoonacularResult>?>
     private var selectedImage: Bitmap? = null
@@ -46,11 +35,6 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     private var ingredientMap: HashMap<String, String>? = null
     private var imageQueue: ArrayList<Bitmap> = arrayListOf()
     var scanning = MutableLiveData<Int>(IDLE)
-    val spoonService: SpoonacularApi = Retrofit.Builder()
-        .baseUrl("https://api.spoonacular.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(SpoonacularApi::class.java)
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -89,44 +73,52 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun getRecipeInstruction(recipeId: Int) {
-        val list = spoonService.getRecipeInstruction(recipeId, "561d02ab93884e1eb9c633a623c27b92")
-        list.enqueue(object : Callback<List<RecipeInstruction>> {
-            override fun onFailure(call: Call<List<RecipeInstruction>>, t: Throwable) {
-            }
+        service.getRecipeInstructions(recipeId)
+            .subscribeOn(Schedulers.io())
+            .subscribe { result ->
+                if (result.isFailure) {
+                    val error = result.exceptionOrNull()!!
+                    // Throw error display
 
-            override fun onResponse(call: Call<List<RecipeInstruction>>, response: Response<List<RecipeInstruction>>) {
-                if (response.body() != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        response.body()!!.forEach {
-                            it.recipeId = recipeId
-                            recipeDao.insertInstruction(it)
+                } else {
+                    val resultBody = result.getOrNull()!!
+                    if (resultBody.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            resultBody.forEach {
+                                it.recipeId = recipeId
+                                recipeDao.insertInstruction(it)
+                            }
                         }
+                    } else {
+                        // No instructions for this recipe
                     }
                 }
-            }
 
-        })
+            }
     }
 
     fun getRecipes(context: Context, set: MutableSet<String>) {
         val ingredients = setUpSet(set)
-        val list = spoonService.getRecipes(ingredients, "561d02ab93884e1eb9c633a623c27b92")
-        list.enqueue(object : Callback<List<SpoonacularResult>> {
-            override fun onResponse(call: Call<List<SpoonacularResult>>, response: Response<List<SpoonacularResult>>) {
-                if (response.body() != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        recipeDao.clearRecipes()
-                        response.body()?.forEach { recipe -> recipeDao.insertRecipe(recipe) }
-                    }
+        service.getRecipes(ingredients)
+            .subscribeOn(Schedulers.io())
+            .subscribe { result ->
+                if (result.isFailure) {
+                    val error = result.exceptionOrNull()!!
+
                 } else {
-                    Toast.makeText(context, context.getString(R.string.no_recipe), Toast.LENGTH_LONG).show()
+                    val resultBody = result.getOrNull()!!
+                    if (resultBody.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            recipeDao.clearRecipes()
+                            resultBody.forEach {
+                                recipeDao.insertRecipe(it)
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.no_recipe), Toast.LENGTH_LONG).show()
+                    }
                 }
             }
-
-            override fun onFailure(call: Call<List<SpoonacularResult>>, t: Throwable) {
-                Toast.makeText(context, context.getString(R.string.no_recipe), Toast.LENGTH_LONG).show()
-            }
-        })
     }
 
     fun addImageToQueue(image: Bitmap) {
@@ -173,34 +165,40 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             .onDeviceTextRecognizer
         recognizer.processImage(firebaseImage).addOnCompleteListener { result ->
             if (result.isSuccessful) {
-                //processTextRecognitionResult(result.result!!)
-                detectIngredients(result.result!!)
+                detectIngredients(result.result!!.text)
             } else {
                 setScanning(FINISHED)
             }
         }
     }
 
-    private fun detectIngredients(texts: FirebaseVisionText){
+    private fun detectIngredients(texts: String) {
+        val text = texts.toLowerCase().replace("\n", " ")
         val ingredientList = mutableSetOf<String>()
-        val text = texts.text.toLowerCase().replace("\n"," ")
-        spoonService.detectIngredients(text,"561d02ab93884e1eb9c633a623c27b92").enqueue(object : Callback<IngredientResults>{
-            override fun onFailure(call: Call<IngredientResults>, t: Throwable) {
-                Log.i("ERROR",t.message)
-            }
+        service.detectIngredients(text)
+            .subscribeOn(Schedulers.io())
+            .subscribe { result ->
+                if (result.isFailure) {
+                    val error = result.exceptionOrNull()!!
+                    // Throw error display
 
-            override fun onResponse(call: Call<IngredientResults>, response: Response<IngredientResults>) {
-                if(response.body()!= null){
-                    response.body()!!.annotations.forEach { ingredientList.add(it.annotation) }
-                }
-                else{
-                    // No ingredients found
-                }
-                Log.i(TAG, ingredientList.toString())
-                setIngList(ingredientList)
-                setScanning(FINISHED)
-            }
+                } else {
+                    val resultBody = result.getOrNull()!!
+                    if (resultBody.annotations.isNotEmpty()) {
+                        resultBody.annotations.forEach {
+                            ingredientList.add(it.annotation)
+                        }
+                    } else {
 
-        })
+                        // No ingredients found
+
+                    }
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    Log.i(TAG, ingredientList.toString())
+                    setIngList(ingredientList)
+                    setScanning(FINISHED)
+                }
+            }
     }
 }

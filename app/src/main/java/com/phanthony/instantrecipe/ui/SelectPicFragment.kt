@@ -14,6 +14,7 @@ import androidx.navigation.findNavController
 import com.phanthony.instantrecipe.R
 import kotlinx.android.synthetic.main.selected_pic_fragment.view.*
 import main.RecipeViewModel
+import main.RecipeViewModelFactory
 
 class SelectPicFragment : Fragment() {
 
@@ -29,7 +30,7 @@ class SelectPicFragment : Fragment() {
         val view = inflater.inflate(R.layout.selected_pic_fragment, container, false)
 
         viewModel = activity!!.run {
-            ViewModelProviders.of(this)[RecipeViewModel::class.java]
+            ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
         loading = view.findViewById(R.id.loadingPanel)

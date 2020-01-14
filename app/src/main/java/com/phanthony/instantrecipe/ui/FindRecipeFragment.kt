@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.phanthony.instantrecipe.R
+import main.RecipeViewModelFactory
 
 class FindRecipeFragment: Fragment() {
     private lateinit var viewModel: RecipeViewModel
@@ -25,7 +26,7 @@ class FindRecipeFragment: Fragment() {
         val view = inflater.inflate(R.layout.find_recipes_fragment,container,false)
 
         viewModel = activity!!.run {
-            ViewModelProviders.of(this)[RecipeViewModel::class.java]
+            ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
         val uploadReceipt: AppCompatButton = view.findViewById(R.id.uploadReceiptButton)
