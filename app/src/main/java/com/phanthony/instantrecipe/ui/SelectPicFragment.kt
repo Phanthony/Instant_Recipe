@@ -13,8 +13,8 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.phanthony.instantrecipe.R
 import kotlinx.android.synthetic.main.selected_pic_fragment.view.*
-import main.RecipeViewModel
-import main.RecipeViewModelFactory
+import com.phanthony.instantrecipe.main.RecipeViewModel
+import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 
 class SelectPicFragment : Fragment() {
 

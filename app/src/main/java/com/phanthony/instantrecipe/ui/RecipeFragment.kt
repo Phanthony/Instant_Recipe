@@ -1,8 +1,7 @@
 package com.phanthony.instantrecipe.ui
 
-import main.RecipeAdapter
-import main.RecipeViewModel
-import database.SpoonacularResult
+import com.phanthony.instantrecipe.main.RecipeAdapter
+import com.phanthony.instantrecipe.main.RecipeViewModel
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,11 +10,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
-import main.RecipeViewModelFactory
+import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 
 class RecipeFragment : Fragment() {
 

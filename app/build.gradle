@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 
-apply plugin: 'kotlin-android-extensions'
-
 apply plugin: 'kotlin-kapt'
+
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 28
@@ -84,7 +84,7 @@ dependencies {
     androidTestImplementation "junit:junit:$junitVersion"
 
     // Truth
-    def truthVersion = "0.42"
+    def truthVersion = "1.0"
     testImplementation "com.google.truth:truth:$truthVersion"
     androidTestImplementation "com.google.truth:truth:$truthVersion"
 
@@ -99,5 +99,4 @@ dependencies {
 
 }
 
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'

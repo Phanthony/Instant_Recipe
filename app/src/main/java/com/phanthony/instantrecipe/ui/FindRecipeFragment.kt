@@ -1,6 +1,6 @@
 package com.phanthony.instantrecipe.ui
 
-import main.RecipeViewModel
+import com.phanthony.instantrecipe.main.RecipeViewModel
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import com.phanthony.instantrecipe.R
-import main.RecipeViewModelFactory
+import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 
 class FindRecipeFragment: Fragment() {
     private lateinit var viewModel: RecipeViewModel
