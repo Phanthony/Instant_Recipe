@@ -52,7 +52,7 @@ class IngredientFragment : Fragment() {
         recipeButton.setOnClickListener {
             Toast.makeText(context, R.string.search_recipes, Toast.LENGTH_SHORT).show()
             val set = viewModel.getIngList().value!!
-            viewModel.getRecipes(set)
+            viewModel.getRecipesViewModel(set)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribeBy(onSuccess = { result ->

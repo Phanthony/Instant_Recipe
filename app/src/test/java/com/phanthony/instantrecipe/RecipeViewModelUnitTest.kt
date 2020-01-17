@@ -101,7 +101,7 @@ class RecipeViewModelUnitTest {
         val mresult = Single.just(Result.failure<List<SpoonacularResult>>(NetworkConnectionIssueException("You have a bad internet connection")))
         whenever(service.getRecipes(any())).thenReturn(mresult)
         val g = service.getRecipes("eggs")
-        val t = viewModel.getRecipes(set)
+        val t = viewModel.getRecipesViewModel(set)
         val mtemp = t.blockingGet()
     }
 }

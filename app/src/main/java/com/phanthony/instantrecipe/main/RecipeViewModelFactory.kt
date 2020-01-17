@@ -19,7 +19,7 @@ class RecipeViewModelFactory(private val application: Application): ViewModelPro
 
     val spoonService: SpoonacularApi = Retrofit.Builder()
         .baseUrl("https://api.spoonacular.com/")
-        .addConverterFactory(MoshiConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create())
         .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
         .build()
         .create(SpoonacularApi::class.java)

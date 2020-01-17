@@ -76,7 +76,8 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     }
 
     fun getRecipeInstruction(recipeId: Int): Single<Result<Int>> {
-        return service.getRecipeInstructions(recipeId).map { result: Result<List<RecipeInstruction>> ->
+        return service.getRecipeInstructions(recipeId).map { res ->
+            val result = res.result
             val networkResult = if (result.isFailure) {
                 val error = result.exceptionOrNull()!!
                 Result.failure(error)
@@ -99,9 +100,10 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         }
     }
 
-    fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
+    fun getRecipesViewModel(set: MutableSet<String>): Single<Result<Int>> {
         val ingredients = setUpSet(set)
-        return service.getRecipes(ingredients).map { processedResult: Result<List<SpoonacularResult>> ->
+        return service.getRecipesService(ingredients).map { res ->
+            val processedResult = res.result
             val networkResult = if (processedResult.isFailure) {
                 val error = processedResult.exceptionOrNull()!!
                 Result.failure(error)
@@ -180,7 +182,8 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         val ingredientList = mutableSetOf<String>()
         service.detectIngredients(text)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { result: Result<IngredientResults> ->
+            .subscribe { res ->
+                val result = res.result
                 if (result.isFailure) {
                     val error = result.exceptionOrNull()!!
                     // Throw error display
