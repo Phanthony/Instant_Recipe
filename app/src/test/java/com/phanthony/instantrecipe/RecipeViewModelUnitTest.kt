@@ -1,15 +1,21 @@
 package com.phanthony.instantrecipe
 
 import android.app.Application
+import com.example.androidtraining.service.error.NetworkConnectionIssueException
+import com.google.common.truth.Truth.assertThat
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.whenever
 import com.phanthony.instantrecipe.database.RecipeDataBase
+import com.phanthony.instantrecipe.database.RecipeInstruction
+import com.phanthony.instantrecipe.database.SpoonacularResult
 import com.phanthony.instantrecipe.main.RecipeViewModel
+import com.phanthony.instantrecipe.service.SpoonacularService
+import io.reactivex.Single
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import com.phanthony.instantrecipe.service.SpoonacularService
-import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 
 
 @RunWith(MockitoJUnitRunner::class)
@@ -21,6 +27,7 @@ class RecipeViewModelUnitTest {
     lateinit var db: RecipeDataBase
     @Mock
     lateinit var app: Application
+
     lateinit var viewModel: RecipeViewModel
 
     @Before
@@ -71,5 +78,30 @@ class RecipeViewModelUnitTest {
         val testResult = viewModel.setUpSet(testSet)
         val expected = ""
         assertThat(testResult).isEqualTo(expected)
+    }
+
+    // Hard to test this function since it doesn't wait for the coroutine
+    // to finish before the assert call
+    @Test
+    fun `getRecipeInstruction test1`(){
+        val tId = 123
+        val instructions = RecipeInstruction(null,1,"Test", listOf())
+        val networkList = listOf(instructions)
+        whenever(service.getRecipeInstructions(any())).thenReturn(
+            Single.just(Result.success(networkList))
+        )
+        viewModel.getRecipeInstruction(tId)
+        Thread.sleep(1000)
+        assertThat(instructions.recipeId).isEqualTo(tId)
+    }
+
+    @Test
+    fun `getRecipe test1`(){
+        val set = mutableSetOf("eggs")
+        val mresult = Single.just(Result.failure<List<SpoonacularResult>>(NetworkConnectionIssueException("You have a bad internet connection")))
+        whenever(service.getRecipes(any())).thenReturn(mresult)
+        val g = service.getRecipes("eggs")
+        val t = viewModel.getRecipes(set)
+        val mtemp = t.blockingGet()
     }
 }

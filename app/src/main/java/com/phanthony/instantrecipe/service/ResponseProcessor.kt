@@ -5,7 +5,8 @@ import com.example.androidtraining.service.error.*
 import com.example.androidtraining.service.logger.ActivityLogger
 import com.phanthony.instantrecipe.R
 import retrofit2.Response
-import retrofit2.adapter.rxjava2.Result
+import retrofit2.adapter.rxjava2.Result as RxResult
+import kotlin.Result as KtResult
 import java.io.IOException
 
 class ResponseProcessor(
@@ -15,7 +16,7 @@ class ResponseProcessor(
 ) {
 
     fun <RESPONSE> process(
-        result: Result<RESPONSE>,
+        result: RxResult<RESPONSE>,
         extraErrorHandling: ((code: Int, response: Response<RESPONSE>, errorBody: String, jsonAdapter: JsonAdapter) -> Throwable?)? = null
     ): ProcessedResult<RESPONSE> {
         when (result.error()) {
@@ -71,7 +72,7 @@ class ResponseProcessor(
     }
 
     // During development you should be handling client side all of the ways that a HTTP API call could fail. However, you may forget some. So to handle that, we need to alert ourselves to fix this issue and to return back to our users a human readable message saying that an error we cannot handle it and we are going to fix it. So this code here logs the error and then returns back a Throwable that we can show the message to the user.
-    fun <RESPONSE> unhandledHttpResult(result: Result<RESPONSE>): UnhandledHttpResultException {
+    fun <RESPONSE> unhandledHttpResult(result: RxResult<RESPONSE>): UnhandledHttpResultException {
         logger.errorOccurred(
             UnhandledHttpResultException(
                 "Fatal HTTP network call. ${result.response()?.toString()

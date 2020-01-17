@@ -1,5 +1,6 @@
 package com.phanthony.instantrecipe.main
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.Bitmap
 import android.util.Log
@@ -10,13 +11,17 @@ import androidx.paging.PagedList
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.phanthony.instantrecipe.database.RecipeDataBase
+import com.phanthony.instantrecipe.database.RecipeInstruction
 import com.phanthony.instantrecipe.database.SpoonacularResult
+import com.phanthony.instantrecipe.service.IngredientResults
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.phanthony.instantrecipe.service.SpoonacularService
+import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlin.Result
 
 val IDLE = 0
 val SCANNING = 1
@@ -70,39 +75,38 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         return builder
     }
 
-    fun getRecipeInstruction(recipeId: Int) {
-        service.getRecipeInstructions(recipeId)
-            .subscribeOn(Schedulers.io())
-            .subscribe { result ->
-                if (result.isFailure) {
-                    val error = result.exceptionOrNull()!!
-                    // Throw error display
-
-                } else {
-                    val resultBody = result.getOrNull()!!
-                    if (resultBody.isNotEmpty()) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            resultBody.forEach {
-                                it.recipeId = recipeId
-                                recipeDao.insertInstruction(it)
-                            }
-                        }
-                    } else {
-                        // No instructions for this recipe
-                    }
-                }
-
-            }
-    }
-
-    fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
-        val ingredients = setUpSet(set)
-        return service.getRecipes(ingredients).map { result ->
+    fun getRecipeInstruction(recipeId: Int): Single<Result<Int>> {
+        return service.getRecipeInstructions(recipeId).map { result: Result<List<RecipeInstruction>> ->
             val networkResult = if (result.isFailure) {
                 val error = result.exceptionOrNull()!!
                 Result.failure(error)
             } else {
                 val resultBody = result.getOrNull()!!
+                if (resultBody.isNotEmpty()) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        resultBody.forEach {
+                            it.recipeId = recipeId
+                            recipeDao.insertInstruction(it)
+                        }
+                    }
+                    Result.success(1)
+                } else {
+                    // No instructions for this recipe
+                    Result.success(2)
+                }
+            }
+            networkResult
+        }
+    }
+
+    fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
+        val ingredients = setUpSet(set)
+        return service.getRecipes(ingredients).map { processedResult: Result<List<SpoonacularResult>> ->
+            val networkResult = if (processedResult.isFailure) {
+                val error = processedResult.exceptionOrNull()!!
+                Result.failure(error)
+            } else {
+                val resultBody = processedResult.getOrNull()!!
                 if (resultBody.isNotEmpty()) {
                     CoroutineScope(Dispatchers.IO).launch {
                         recipeDao.clearRecipes()
@@ -170,12 +174,13 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun detectIngredients(texts: String) {
         val text = texts.toLowerCase().replace("\n", " ")
         val ingredientList = mutableSetOf<String>()
         service.detectIngredients(text)
-            .subscribeOn(Schedulers.io())
-            .subscribe { result ->
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { result: Result<IngredientResults> ->
                 if (result.isFailure) {
                     val error = result.exceptionOrNull()!!
                     // Throw error display
@@ -192,11 +197,9 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
 
                     }
                 }
-                CoroutineScope(Dispatchers.Main).launch {
-                    Log.i(TAG, ingredientList.toString())
-                    setIngList(ingredientList)
-                    setScanning(FINISHED)
-                }
+                Log.i(TAG, ingredientList.toString())
+                setIngList(ingredientList)
+                setScanning(FINISHED)
             }
     }
 }

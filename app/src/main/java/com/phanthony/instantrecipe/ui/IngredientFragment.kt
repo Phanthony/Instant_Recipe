@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -16,8 +17,11 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
+import com.phanthony.instantrecipe.extensions.getErrorDialog
 import io.reactivex.schedulers.Schedulers
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.subscribeBy
 
 class IngredientFragment : Fragment() {
 
@@ -44,17 +48,18 @@ class IngredientFragment : Fragment() {
 
         nav = this.activity!!.findNavController(R.id.navHostFragment)
 
-        val button = view.findViewById<AppCompatButton>(R.id.findRecipeButton)
-        button.setOnClickListener {
+        val recipeButton = view.findViewById<AppCompatButton>(R.id.findRecipeButton)
+        recipeButton.setOnClickListener {
             Toast.makeText(context, R.string.search_recipes, Toast.LENGTH_SHORT).show()
             val set = viewModel.getIngList().value!!
             viewModel.getRecipes(set)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe { result ->
+                .subscribeBy(onSuccess = { result ->
                     if (result.isFailure) {
-                        // Error Message
+                        getErrorDialog(result.exceptionOrNull()!!.message!!, this.context!!).show()
                     } else {
-                        when(result.getOrNull()!!){
+                        when (result.getOrNull()!!) {
                             1 -> {
                                 nav.navigate(R.id.recipeFragment)
                             }
@@ -63,7 +68,21 @@ class IngredientFragment : Fragment() {
                             }
                         }
                     }
-                }
+                },
+                    onError = { result ->
+                        getErrorDialog(result.message!!, this.context!!).show()
+                    })
+        }
+
+        val ingButton = view.findViewById<AppCompatButton>(R.id.addIngButton)
+        ingButton.setOnClickListener {
+            val textBox = view.findViewById<AppCompatEditText>(R.id.ingredientTextBox)
+            if (!textBox.text.isNullOrBlank()) {
+                val set = viewModel.getIngList().value!!
+                set.add(textBox.text.toString())
+                textBox.text?.clear()
+                viewModel.setIngList(set)
+            }
         }
 
         return view

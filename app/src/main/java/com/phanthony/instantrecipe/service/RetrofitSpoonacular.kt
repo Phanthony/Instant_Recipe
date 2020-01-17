@@ -1,59 +1,45 @@
 package com.phanthony.instantrecipe.service
 
-import android.app.Application
-import com.example.androidtraining.service.logger.AppActivityLogger
 import com.phanthony.instantrecipe.database.RecipeInstruction
 import com.phanthony.instantrecipe.database.SpoonacularResult
 import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.Result as KtResult
+import retrofit2.adapter.rxjava2.Result as RxResult
 
-class RetrofitSpoonacular(application: Application): SpoonacularService {
+class RetrofitSpoonacular(private val spoonService: SpoonacularApi, private val responseProcessor: ResponseProcessor) :
+    SpoonacularService {
 
-    val spoonService: SpoonacularApi = Retrofit.Builder()
-        .baseUrl("https://api.spoonacular.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-        .build()
-        .create(SpoonacularApi::class.java)
-
-    private val responseProcessor = ResponseProcessor(application, AppActivityLogger(), GsonJsonAdapter())
-
-
-
-    override fun detectIngredients(texts: String): Single<Result<IngredientResults>> {
-        return spoonService.detectIngredients(texts,"561d02ab93884e1eb9c633a623c27b92").map { result ->
+    override fun detectIngredients(texts: String): Single<KtResult<IngredientResults>> {
+        return spoonService.detectIngredients(texts, "561d02ab93884e1eb9c633a623c27b92").map { result ->
             val processedResult = responseProcessor.process(result)
-            val returnResult = if(processedResult.isSuccessful()){
-                Result.success(processedResult.body!!)
-            }else{
-                Result.failure(processedResult.error!!)
+            val returnResult = if (processedResult.isSuccessful()) {
+                KtResult.success(processedResult.body!!)
+            } else {
+                KtResult.failure(processedResult.error!!)
             }
             returnResult
         }
     }
 
-    override fun getRecipes(ingredients: String): Single<Result<List<SpoonacularResult>>> {
+    override fun getRecipes(ingredients: String): Single<KtResult<List<SpoonacularResult>>> {
         return spoonService.getRecipes(ingredients, "561d02ab93884e1eb9c633a623c27b92").map { result ->
             val processedResult = responseProcessor.process(result)
-            val returnResult = if(processedResult.isSuccessful()){
-                Result.success(processedResult.body!!)
-            } else{
-                Result.failure(processedResult.error!!)
+            val returnResult = if (processedResult.isFailure()) {
+                KtResult.failure(processedResult.error!!)
+            } else {
+                KtResult.success(processedResult.body!!)
             }
             returnResult
         }
     }
 
-    override fun getRecipeInstructions(recipeId: Int): Single<Result<List<RecipeInstruction>>> {
+    override fun getRecipeInstructions(recipeId: Int): Single<KtResult<List<RecipeInstruction>>> {
         return spoonService.getRecipeInstruction(recipeId, "561d02ab93884e1eb9c633a623c27b92").map { result ->
             val processedResult = responseProcessor.process(result)
-            val returnResult = if(processedResult.isSuccessful()){
-                Result.success(processedResult.body!!)
-            }else{
-                Result.failure(processedResult.error!!)
+            val returnResult = if (processedResult.isSuccessful()) {
+                KtResult.success(processedResult.body!!)
+            } else {
+                KtResult.failure(processedResult.error!!)
             }
             returnResult
         }
