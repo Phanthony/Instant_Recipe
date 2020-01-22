@@ -11,6 +11,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +27,7 @@ class RecipeFragment : Fragment() {
 
     private lateinit var adapter: RecipeAdapter
     private lateinit var viewModel: RecipeViewModel
+    lateinit var nav: NavController
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.recipes_fragment, container, false)
@@ -33,7 +36,7 @@ class RecipeFragment : Fragment() {
             ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
-        val nav = activity!!.findNavController(R.id.navHostFragment)
+        nav = activity!!.findNavController(R.id.navHostFragment)
 
         adapter = RecipeAdapter(context!!, nav, this::getRecipeInstruction)
 
@@ -57,7 +60,8 @@ class RecipeFragment : Fragment() {
                 } else {
                     when(result.getOrNull()){
                         1 -> {
-                            //Found instructions
+                            viewModel.setRecipe(recipeId)
+                            nav.navigate(R.id.recipeStepFragment)
                         }
                         2 -> {
                             //No instructions found
@@ -71,6 +75,6 @@ class RecipeFragment : Fragment() {
     }
 
     fun observeList() {
-        viewModel.getRecipeList().observe(this, Observer(adapter::submitList))
+        viewModel.getRecipeList()?.observe(this, Observer(adapter::submitList))
     }
 }

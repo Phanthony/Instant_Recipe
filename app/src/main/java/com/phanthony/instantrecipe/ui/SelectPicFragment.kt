@@ -19,8 +19,6 @@ import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 class SelectPicFragment : Fragment() {
 
     var image: Bitmap? = null
-
-    lateinit var ingredientMap: HashMap<String, String>
     lateinit var viewModel: RecipeViewModel
     lateinit var nav: NavController
     lateinit var loading: RelativeLayout
@@ -45,8 +43,6 @@ class SelectPicFragment : Fragment() {
             viewModel.addImageToQueue(image!!)
             nav.navigate(R.id.findRecipeFragment)
         }
-
-        ingredientMap = viewModel.getMap()
         return view
     }
 }

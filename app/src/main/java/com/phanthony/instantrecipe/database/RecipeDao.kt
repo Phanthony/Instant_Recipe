@@ -5,6 +5,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import io.reactivex.Observable
+import io.reactivex.Single
 
 @Dao
 interface RecipeDao {
@@ -21,6 +23,9 @@ interface RecipeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertInstruction(instruction: RecipeInstruction)
 
-    //@Query("SELECT * FROM Recipe_Steps_Table WHERE recipeId LIKE :id")
-    //fun findInstruction(id:Int): List<RecipeInstruction>
+    @Query("SELECT * FROM Recipe_Table WHERE id lIKE :id")
+    fun getRecipeSingle(id: Int): Single<SpoonacularResult>
+
+    @Query("SELECT * FROM Recipe_Steps_Table WHERE recipeId LIKE :id")
+    fun findInstruction(id:Int): Observable<List<RecipeInstruction>>
 }

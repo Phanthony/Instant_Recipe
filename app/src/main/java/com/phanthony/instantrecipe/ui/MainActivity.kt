@@ -39,21 +39,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProviders.of(this,RecipeViewModelFactory(this.application)).get(RecipeViewModel::class.java)
 
-        val ingredientMap = hashMapOf<String,String>()
-
-        //get ingredients from ingredients.csv
-        CoroutineScope(Dispatchers.IO).launch{
-            val ingredients = resources.openRawResource(R.raw.test)
-            csvReader().open(ingredients) {
-                readAllAsSequence().forEach {
-                    val split = it.first().split(";")
-                    ingredientMap[split.first()] = split.last()
-                }
-            }
-
-            viewModel.setMap(ingredientMap)
-        }
-
         viewModel.observeQueue(this)
 
         val host: NavHostFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment? ?: return

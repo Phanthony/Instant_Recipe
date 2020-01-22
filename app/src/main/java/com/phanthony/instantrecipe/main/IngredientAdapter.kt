@@ -8,7 +8,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
 
-class IngredientAdapter(var ingList: MutableList<String>, val viewModel: RecipeViewModel): RecyclerView.Adapter<IngredientAdapter.ViewHolder>() {
+class IngredientAdapter(var ingList: MutableList<String>, private val viewModel: RecipeViewModel): RecyclerView.Adapter<IngredientAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = LayoutInflater.from(parent.context).inflate(R.layout.ingredient_layout,parent,false)
         return ViewHolder(layout)

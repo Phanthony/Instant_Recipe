@@ -10,17 +10,18 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.phanthony.instantrecipe.database.RecipeDao
 import com.phanthony.instantrecipe.database.RecipeDataBase
 import com.phanthony.instantrecipe.database.RecipeInstruction
 import com.phanthony.instantrecipe.database.SpoonacularResult
-import com.phanthony.instantrecipe.service.IngredientResults
 import io.reactivex.Single
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.phanthony.instantrecipe.service.SpoonacularService
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlin.Result
 
 val IDLE = 0
@@ -31,17 +32,24 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     AndroidViewModel(application) {
 
     private val TAG = "TEXT_FOUND"
-    private var recipeDao = db.recipeDao()
-    private lateinit var recipeList: LiveData<PagedList<SpoonacularResult>?>
+    private var recipeDao: RecipeDao? = db.recipeDao()
+    private var recipeList: LiveData<PagedList<SpoonacularResult>?>? = null
     private var selectedImage: Bitmap? = null
     private var ingList: MutableLiveData<MutableSet<String>> = MutableLiveData(mutableSetOf())
-    private var ingredientMap: HashMap<String, String>? = null
     private var imageQueue: ArrayList<Bitmap> = arrayListOf()
+    private var currentRecipe: MutableLiveData<Int> = MutableLiveData()
     var scanning = MutableLiveData<Int>(IDLE)
+
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            val factory: DataSource.Factory<Int, SpoonacularResult> = recipeDao.getRecipe()
+            initialSetup()
+        }
+    }
+
+    fun initialSetup() {
+        val factory: DataSource.Factory<Int, SpoonacularResult>? = recipeDao?.getRecipe()
+        if(factory!= null) {
             recipeList = LivePagedListBuilder(factory, 10).build()
         }
     }
@@ -76,54 +84,56 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     }
 
     fun getRecipeInstruction(recipeId: Int): Single<Result<Int>> {
-        return service.getRecipeInstructions(recipeId).map { res ->
-            val result = res.result
-            val networkResult = if (result.isFailure) {
-                val error = result.exceptionOrNull()!!
-                Result.failure(error)
-            } else {
-                val resultBody = result.getOrNull()!!
-                if (resultBody.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
+        return service.getRecipeInstructions(recipeId).observeOn(Schedulers.io())
+            .map { res ->
+                val result = res.result
+                val networkResult = if (result.isFailure) {
+                    val error = result.exceptionOrNull()!!
+                    Result.failure(error)
+                } else {
+                    val resultBody = result.getOrNull()!!
+                    if (resultBody.isNotEmpty()) {
                         resultBody.forEach {
                             it.recipeId = recipeId
-                            recipeDao.insertInstruction(it)
+                            recipeDao?.insertInstruction(it)
+
                         }
+                        Result.success(1)
+                    } else {
+                        // No instructions for this recipe
+                        Result.success(2)
                     }
-                    Result.success(1)
-                } else {
-                    // No instructions for this recipe
-                    Result.success(2)
                 }
+                networkResult
             }
-            networkResult
-        }
     }
 
-    fun getRecipesViewModel(set: MutableSet<String>): Single<Result<Int>> {
+    fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
         val ingredients = setUpSet(set)
-        return service.getRecipesService(ingredients).map { res ->
-            val processedResult = res.result
-            val networkResult = if (processedResult.isFailure) {
-                val error = processedResult.exceptionOrNull()!!
-                Result.failure(error)
-            } else {
-                val resultBody = processedResult.getOrNull()!!
-                if (resultBody.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        recipeDao.clearRecipes()
-                        resultBody.forEach {
-                            recipeDao.insertRecipe(it)
-                        }
-                    }
-                    Result.success(1)
+        return service.getRecipes(ingredients)
+            .observeOn(Schedulers.io())
+            .map { res ->
+                val processedResult = res.result
+                val networkResult = if (processedResult.isFailure) {
+                    val error = processedResult.exceptionOrNull()!!
+                    Result.failure(error)
                 } else {
-                    Result.success(2)
+                    val resultBody = processedResult.getOrNull()!!
+                    if (resultBody.isNotEmpty()) {
+                        recipeDao?.clearRecipes()
+                        resultBody.forEach {
+                            recipeDao?.insertRecipe(it)
+                        }
+                        Result.success(1)
+                    } else {
+                        Result.success(2)
+                    }
                 }
+                networkResult
             }
-            networkResult
-        }
     }
+
+
 
     fun addImageToQueue(image: Bitmap) {
         imageQueue.add(image)
@@ -140,14 +150,6 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         return selectedImage!!
     }
 
-    fun setMap(map: HashMap<String, String>) {
-        ingredientMap = map
-    }
-
-    fun getMap(): HashMap<String, String> {
-        return ingredientMap!!
-    }
-
     fun setIngList(set: MutableSet<String>) {
         val newSet = ingList.value!!
         newSet.addAll(set)
@@ -161,6 +163,23 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     fun setScanning(value: Int) {
         scanning.value = value
     }
+
+    fun setRecipe(value: Int){
+        currentRecipe.value = value
+    }
+
+    fun getRecipe(): MutableLiveData<Int>{
+        return currentRecipe
+    }
+
+    fun getSingleRecipe(recipeId: Int): Single<SpoonacularResult>? {
+        return recipeDao?.getRecipeSingle(recipeId)
+    }
+
+    fun getRecipeInstructions(recipeId: Int): Observable<List<RecipeInstruction>>?{
+        return recipeDao?.findInstruction(recipeId)
+    }
+
 
     fun runTextRecognition() {
         val firebaseImage = FirebaseVisionImage.fromBitmap(imageQueue[0])
@@ -187,7 +206,6 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
                 if (result.isFailure) {
                     val error = result.exceptionOrNull()!!
                     // Throw error display
-
                 } else {
                     val resultBody = result.getOrNull()!!
                     if (resultBody.annotations.isNotEmpty()) {
@@ -195,9 +213,7 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
                             ingredientList.add(it.annotation)
                         }
                     } else {
-
                         // No ingredients found
-
                     }
                 }
                 Log.i(TAG, ingredientList.toString())

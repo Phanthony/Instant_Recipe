@@ -11,4 +11,6 @@
               android:label="IngredientFragment"/>
     <fragment android:id="@+id/recipeFragment" android:name="com.phanthony.instantrecipe.ui.RecipeFragment"
               android:label="RecipeFragment"/>
+    <fragment android:id="@+id/recipeStepFragment" android:name="com.phanthony.instantrecipe.ui.RecipeStepFragment"
+              android:label="RecipeStepFragment"/>
 </navigation>

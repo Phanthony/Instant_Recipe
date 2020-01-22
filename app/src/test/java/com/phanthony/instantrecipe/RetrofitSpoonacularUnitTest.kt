@@ -42,7 +42,7 @@ class RetrofitSpoonacularUnitTest {
         whenever(service.getRecipes(any(), any())).thenReturn(result)
         whenever(rp.process(rxResult)).thenReturn(rpResult)
         val expected = KtResult.success<List<SpoonacularResult>>(listOf())
-        val runTest = retro.getRecipesService("test").blockingGet()
+        val runTest = retro.getRecipes("test").blockingGet()
         assertThat(runTest).isEqualTo(expected)
     }
 
@@ -53,8 +53,8 @@ class RetrofitSpoonacularUnitTest {
         val rpResult = ResponseProcessor.ProcessedResult<List<SpoonacularResult>>(NetworkConnectionIssueException("You have a no internet"),"You have no internet",null)
         whenever(service.getRecipes(any(), any())).thenReturn(result)
         whenever(rp.process(rxResult)).thenReturn(rpResult)
-        val expected = KtResult.failure<List<SpoonacularResult>>(NetworkConnectionIssueException("You have a no internet"))
-        val runTest = retro.getRecipesService("test").blockingGet()
-        assertThat(runTest).isEqualTo(expected)
+        val runTest = retro.getRecipes("test").blockingGet()
+        assertThat(runTest.result.isFailure).isTrue()
+        assertThat(runTest.result.exceptionOrNull()).isInstanceOf(NetworkConnectionIssueException::class.java)
     }
 }

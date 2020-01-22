@@ -44,6 +44,18 @@
                       </LayoutPositions>
                     </value>
                   </entry>
+                  <entry key="recipeStepFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="-200" />
+                            <option name="y" value="-417" />
+                          </Point>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
                   <entry key="selectPicFragment">
                     <value>
                       <LayoutPositions>
