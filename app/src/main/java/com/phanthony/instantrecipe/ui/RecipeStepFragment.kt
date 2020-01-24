@@ -20,7 +20,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.ingredient_list_fragment.*
 
-class RecipeStepFragment: Fragment() {
+class RecipeStepFragment : Fragment() {
 
     lateinit var viewModel: RecipeViewModel
     lateinit var adapter: RecipeStepAdapter
@@ -37,27 +37,26 @@ class RecipeStepFragment: Fragment() {
         recipeStepList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
         recipeStepList.adapter = adapter
 
-        val recipeTitle = view.findViewById<AppCompatTextView>(R.id.recipeTitle)
-
-        observeSteps(recipeTitle)
+        observeSteps()
 
         return view
     }
 
-    fun observeSteps(view: AppCompatTextView){
-        viewModel.getRecipe().observe(this, Observer { retrieveRecipe(adapter,it,view) })
+    fun observeSteps() {
+        viewModel.getRecipe().observe(this, Observer { retrieveRecipe(adapter, it) })
     }
 
     @SuppressLint("CheckResult")
-    fun retrieveRecipe(adapter: RecipeStepAdapter, id: Int, view: AppCompatTextView){
-        viewModel.getSingleRecipe(id)?.subscribeOn(Schedulers.io())?.observeOn(AndroidSchedulers.mainThread())?.subscribe { result ->
-            view.text = result.title
+    fun retrieveRecipe(adapter: RecipeStepAdapter, id: Int) {
+        viewModel.getSingleRecipe(id)?.subscribeOn(Schedulers.io())?.subscribe { result ->
+            val temp = RecipeInstruction(null, result.title, listOf())
+            viewModel.getRecipeInstructions(id)?.subscribeOn(Schedulers.io())
+                ?.observeOn(AndroidSchedulers.mainThread())?.subscribe { result2 ->
+                    adapter.clear()
+                    adapter.add(temp)
+                    adapter.addAll(result2)
+                }
         }
-        viewModel.getRecipeInstructions(id)?.subscribeOn(Schedulers.io())?.observeOn(AndroidSchedulers.mainThread())?.subscribe{ result ->
-            adapter.clear()
-            adapter.addAll(result)
-        }
-
     }
 
 }

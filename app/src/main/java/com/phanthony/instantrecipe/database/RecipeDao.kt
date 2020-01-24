@@ -21,11 +21,11 @@ interface RecipeDao {
     fun getRecipe(): DataSource.Factory<Int,SpoonacularResult>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertInstruction(instruction: RecipeInstruction)
+    fun insertInstruction(instructionList: List<RecipeInstruction>)
 
     @Query("SELECT * FROM Recipe_Table WHERE id lIKE :id")
     fun getRecipeSingle(id: Int): Single<SpoonacularResult>
 
     @Query("SELECT * FROM Recipe_Steps_Table WHERE recipeId LIKE :id")
-    fun findInstruction(id:Int): Observable<List<RecipeInstruction>>
+    fun findInstruction(id:Int): Single<List<RecipeInstruction>?>
 }

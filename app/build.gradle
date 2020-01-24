@@ -90,6 +90,7 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-rxjava2:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
+    debugImplementation 'com.amitshekhar.android:debug-db:1.0.6'
 
     // Gson
     def gsonVersion = "2.8.6"

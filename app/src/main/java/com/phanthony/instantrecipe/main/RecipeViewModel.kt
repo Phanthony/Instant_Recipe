@@ -95,9 +95,8 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
                     if (resultBody.isNotEmpty()) {
                         resultBody.forEach {
                             it.recipeId = recipeId
-                            recipeDao?.insertInstruction(it)
-
                         }
+                        recipeDao?.insertInstruction(resultBody)
                         Result.success(1)
                     } else {
                         // No instructions for this recipe
@@ -176,7 +175,7 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         return recipeDao?.getRecipeSingle(recipeId)
     }
 
-    fun getRecipeInstructions(recipeId: Int): Observable<List<RecipeInstruction>>?{
+    fun getRecipeInstructions(recipeId: Int): Single<List<RecipeInstruction>?>?{
         return recipeDao?.findInstruction(recipeId)
     }
 

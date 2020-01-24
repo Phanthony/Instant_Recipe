@@ -38,7 +38,7 @@ class RecipeFragment : Fragment() {
 
         nav = activity!!.findNavController(R.id.navHostFragment)
 
-        adapter = RecipeAdapter(context!!, nav, this::getRecipeInstruction)
+        adapter = RecipeAdapter(context!!, nav, this::checkIfRecipeExists)
 
         val recipeList = view.findViewById<RecyclerView>(R.id.recipeList)
         recipeList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
@@ -50,27 +50,40 @@ class RecipeFragment : Fragment() {
     }
 
     @SuppressLint("CheckResult")
+    private fun checkIfRecipeExists(recipeId: Int) {
+        viewModel.getRecipeInstructions(recipeId)?.subscribeOn(Schedulers.io())
+            ?.observeOn(AndroidSchedulers.mainThread())?.subscribe { result ->
+            if (result != null) {
+                viewModel.setRecipe(recipeId)
+                nav.navigate(R.id.recipeStepFragment)
+            } else {
+                getRecipeInstruction(recipeId)
+            }
+        }
+    }
+
+    @SuppressLint("CheckResult")
     private fun getRecipeInstruction(recipeId: Int) {
         viewModel.getRecipeInstruction(recipeId)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(onSuccess = { result ->
                 if (result.isFailure) {
-                    getErrorDialog(result.exceptionOrNull()!!.message!!,this.context!!).show()
+                    getErrorDialog(result.exceptionOrNull()!!.message!!, this.context!!).show()
                 } else {
-                    when(result.getOrNull()){
+                    when (result.getOrNull()) {
                         1 -> {
                             viewModel.setRecipe(recipeId)
                             nav.navigate(R.id.recipeStepFragment)
                         }
                         2 -> {
                             //No instructions found
-                            Toast.makeText(this.context,R.string.no_instruction,Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this.context, R.string.no_instruction, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             }, onError = { result ->
-                getErrorDialog(result.message!!,this.context!!).show()
+                getErrorDialog(result.message!!, this.context!!).show()
             })
     }
 
