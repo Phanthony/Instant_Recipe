@@ -10,7 +10,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.phanthony.instantrecipe"
-        minSdkVersion 23
+        minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -115,6 +115,9 @@ dependencies {
         exclude group: 'org.jetbrains.kotlin'
         exclude group: 'org.mockito'
     }
+
+    // SnackBar
+    implementation 'com.google.android.material:material:1.1.0-alpha04'
 
 }
 

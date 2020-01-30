@@ -27,5 +27,5 @@ interface RecipeDao {
     fun getRecipeSingle(id: Int): Single<SpoonacularResult>
 
     @Query("SELECT * FROM Recipe_Steps_Table WHERE recipeId LIKE :id")
-    fun findInstruction(id:Int): Single<List<RecipeInstruction>?>
+    fun findInstruction(id:Int): Single<List<RecipeInstruction>>
 }

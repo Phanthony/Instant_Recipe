@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
+        style="@style/itemTheme"
         android:id="@+id/recipeView"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
@@ -7,8 +8,8 @@
         android:layout_height="wrap_content"
         android:weightSum="1.0"
         android:gravity="center"
-        android:layout_margin="8dp"
-        android:background="#fff4"
+        android:padding="4dp"
+        android:layout_margin="4dp"
 >
 
     <androidx.appcompat.widget.AppCompatImageView

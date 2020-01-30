@@ -2,6 +2,8 @@ package com.phanthony.instantrecipe.ui
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,16 +14,18 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.phanthony.instantrecipe.main.*
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var startToast: Toast
-    lateinit var finishToast: Toast
+    lateinit var startSnackBar: Snackbar
+    lateinit var finishSnackBar: Snackbar
     lateinit var viewModel: RecipeViewModel
 
     val PERMISSIONS = arrayOf(
@@ -45,8 +49,8 @@ class MainActivity : AppCompatActivity() {
         val navController = host.navController
         setupBottomNav(navController)
 
-        startToast = Toast.makeText(this, getString(R.string.scan_start), Toast.LENGTH_LONG)
-        finishToast = Toast.makeText(this, getString(R.string.scan_finish), Toast.LENGTH_SHORT)
+        startSnackBar = Snackbar.make(findViewById(R.id.mainLayout),getString(R.string.scan_start),Snackbar.LENGTH_SHORT).setAnchorView(bottomNav)
+        finishSnackBar = Snackbar.make(findViewById(R.id.mainLayout),getString(R.string.scan_finish),Snackbar.LENGTH_SHORT).setAnchorView(bottomNav)
 
         observeScanner()
 
@@ -56,12 +60,10 @@ class MainActivity : AppCompatActivity() {
         viewModel.scanning.observe(this, Observer { status ->
             when(status){
                 SCANNING -> {
-                    finishToast.cancel()
-                    startToast.show()
+                    startSnackBar.show()
                 }
                 FINISHED -> {
-                    startToast.cancel()
-                    finishToast.show()
+                    finishSnackBar.show()
                     viewModel.setScanning(IDLE)
                 }
             }
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNav(nav: NavController){
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         bottomNav.itemIconTintList = null
+        bottomNav.background = ColorDrawable(getColor(R.color.backgroundColor))
         bottomNav.setOnNavigationItemSelectedListener { item ->
             nav.navigate(item.itemId)
             true

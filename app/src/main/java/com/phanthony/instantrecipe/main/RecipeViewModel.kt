@@ -171,12 +171,12 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         return currentRecipe
     }
 
-    fun getSingleRecipe(recipeId: Int): Single<SpoonacularResult>? {
-        return recipeDao?.getRecipeSingle(recipeId)
+    fun getSingleRecipe(recipeId: Int): Single<SpoonacularResult> {
+        return recipeDao!!.getRecipeSingle(recipeId)
     }
 
-    fun getRecipeInstructions(recipeId: Int): Single<List<RecipeInstruction>?>?{
-        return recipeDao?.findInstruction(recipeId)
+    fun getRecipeInstructions(recipeId: Int): Single<List<RecipeInstruction>>{
+        return recipeDao!!.findInstruction(recipeId)
     }
 
 

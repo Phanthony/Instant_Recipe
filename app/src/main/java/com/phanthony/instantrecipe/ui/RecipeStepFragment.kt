@@ -5,20 +5,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phanthony.instantrecipe.R
-import com.phanthony.instantrecipe.database.RecipeInstruction
 import com.phanthony.instantrecipe.main.RecipeStepAdapter
 import com.phanthony.instantrecipe.main.RecipeViewModel
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.ingredient_list_fragment.*
 
 class RecipeStepFragment : Fragment() {
 
@@ -43,20 +40,47 @@ class RecipeStepFragment : Fragment() {
     }
 
     fun observeSteps() {
-        viewModel.getRecipe().observe(this, Observer { retrieveRecipe(adapter, it) })
+        viewModel.getRecipe().observe(this, Observer { retrieveRecipe(adapter,it) })
     }
 
     @SuppressLint("CheckResult")
-    fun retrieveRecipe(adapter: RecipeStepAdapter, id: Int) {
-        viewModel.getSingleRecipe(id)?.subscribeOn(Schedulers.io())?.subscribe { result ->
-            val temp = RecipeInstruction(null, result.title, listOf())
-            viewModel.getRecipeInstructions(id)?.subscribeOn(Schedulers.io())
-                ?.observeOn(AndroidSchedulers.mainThread())?.subscribe { result2 ->
+    fun retrieveRecipe(adapter: RecipeStepAdapter ,id: Int){
+        viewModel.getSingleRecipe(id).subscribeOn(Schedulers.io()).map { recipeResult ->
+            recipeResult
+        }.subscribe { recipeInfo ->
+            viewModel.getRecipeInstructions(id).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe { recipe ->
                     adapter.clear()
-                    adapter.add(temp)
-                    adapter.addAll(result2)
+                    var allIngs = "Missing Ingredients\n"
+                    for(miss in 0 until recipeInfo.missedIngredients.size){
+                        if(miss == recipeInfo.missedIngredients.lastIndex){
+                            allIngs += recipeInfo.missedIngredients[miss].name
+                        } else {
+                            allIngs += "${recipeInfo.missedIngredients[miss].name}, "
+                        }
+                    }
+                    allIngs += "-splithere-Used Ingredients\n"
+                    for(use in 0 until recipeInfo.usedIngredients.size){
+                        if(use == recipeInfo.usedIngredients.lastIndex){
+                            allIngs += recipeInfo.usedIngredients[use].name
+                        } else {
+                            allIngs += "${recipeInfo.usedIngredients[use].name}, "
+                        }
+                    }
+                    val recipeStepList = arrayListOf<Pair<String,Boolean>>()
+                    recipeStepList.add(Pair(recipeInfo.title,true))
+                    recipeStepList.add(Pair(allIngs,true))
+                    recipe.forEach { outerRecipeStep ->
+                        recipeStepList.add(Pair(outerRecipeStep.name,true))
+                        outerRecipeStep.steps.forEach { innerRecipeStep ->
+                            recipeStepList.add(Pair("${innerRecipeStep.number}. ${innerRecipeStep.step}\n",false))
+                        }
+                    }
+                    adapter.addAll(recipeStepList)
                 }
         }
     }
+
+
 
 }

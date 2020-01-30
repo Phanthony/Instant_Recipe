@@ -7,10 +7,13 @@
         android:weightSum="1.0"
 >
     <LinearLayout
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
         <androidx.appcompat.widget.AppCompatEditText
+
                 android:id="@+id/ingredientTextBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -18,7 +21,7 @@
         />
 
         <androidx.appcompat.widget.AppCompatButton
-                android:layout_marginEnd="8dp"
+                style="@style/buttonTheme"
                 android:text="@string/add_ing"
                 android:id="@+id/addIngButton"
                 android:layout_width="wrap_content"
@@ -42,6 +45,8 @@
     >
 
         <androidx.appcompat.widget.AppCompatButton
+                android:layout_margin="5dp"
+                style="@style/buttonTheme"
                 android:text="@string/find_recipe"
                 android:id="@+id/findRecipeButton"
                 android:layout_width="wrap_content"

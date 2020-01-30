@@ -1,23 +1,24 @@
 package com.phanthony.instantrecipe.ui
 
 import android.annotation.SuppressLint
-import com.phanthony.instantrecipe.main.RecipeAdapter
-import com.phanthony.instantrecipe.main.RecipeViewModel
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
 import com.phanthony.instantrecipe.extensions.getErrorDialog
+import com.phanthony.instantrecipe.main.RecipeAdapter
+import com.phanthony.instantrecipe.main.RecipeViewModel
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
@@ -36,9 +37,9 @@ class RecipeFragment : Fragment() {
             ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
-        nav = activity!!.findNavController(R.id.navHostFragment)
+        nav = this.findNavController()
 
-        adapter = RecipeAdapter(context!!, nav, this::checkIfRecipeExists)
+        adapter = RecipeAdapter(context!!, this::checkIfRecipeExists)
 
         val recipeList = view.findViewById<RecyclerView>(R.id.recipeList)
         recipeList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
@@ -49,17 +50,24 @@ class RecipeFragment : Fragment() {
         return view
     }
 
+    var recipeStepLastClickTime: Long = 0
+
     @SuppressLint("CheckResult")
     private fun checkIfRecipeExists(recipeId: Int) {
-        viewModel.getRecipeInstructions(recipeId)?.subscribeOn(Schedulers.io())
-            ?.observeOn(AndroidSchedulers.mainThread())?.subscribe { result ->
-            if (result != null) {
-                viewModel.setRecipe(recipeId)
-                nav.navigate(R.id.recipeStepFragment)
-            } else {
-                getRecipeInstruction(recipeId)
-            }
+        if (SystemClock.elapsedRealtime() - recipeStepLastClickTime < 1000) {
+            return
         }
+        recipeStepLastClickTime = SystemClock.elapsedRealtime();
+        viewModel.getRecipeInstructions(recipeId).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { result ->
+                if (result.isNotEmpty()) {
+                    viewModel.setRecipe(recipeId)
+                    nav.navigate(R.id.action_recipeFragment_to_recipeStepFragment)
+                } else {
+                    getRecipeInstruction(recipeId)
+                }
+            }
     }
 
     @SuppressLint("CheckResult")
@@ -74,11 +82,17 @@ class RecipeFragment : Fragment() {
                     when (result.getOrNull()) {
                         1 -> {
                             viewModel.setRecipe(recipeId)
-                            nav.navigate(R.id.recipeStepFragment)
+                            nav.navigate(R.id.action_recipeFragment_to_recipeStepFragment)
                         }
                         2 -> {
                             //No instructions found
-                            Toast.makeText(this.context, R.string.no_instruction, Toast.LENGTH_SHORT).show()
+                            Snackbar.make(
+                                activity!!.findViewById(R.id.mainLayout),
+                                R.string.no_instruction,
+                                Snackbar.LENGTH_SHORT
+                            )
+                                .setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                .show()
                         }
                     }
                 }

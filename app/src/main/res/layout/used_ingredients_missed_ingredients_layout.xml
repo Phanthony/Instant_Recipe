@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:weightSum="1"
+              android:padding="5dp"
+>
+
+    <androidx.appcompat.widget.AppCompatTextView
+            android:layout_weight="0.5"
+            android:textSize="15sp"
+            android:textAlignment="center"
+            android:id="@+id/usedIngredientsRecipe"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+            android:layout_weight="0.5"
+            android:textSize="15sp"
+            android:textAlignment="center"
+            android:textColor="#ff0000"
+            android:id="@+id/missingIngredientsRecipe"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+    />
+
+
+</LinearLayout>

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.navigation.NavController
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +15,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.phanthony.instantrecipe.R
 import com.phanthony.instantrecipe.database.SpoonacularResult
 
-class RecipeAdapter(val context: Context, val nav: NavController, val findRecipe: (recipeId: Int) -> Unit) :
+class RecipeAdapter(val context: Context, val findRecipe: (recipeId: Int) -> Unit) :
     PagedListAdapter<SpoonacularResult, RecipeAdapter.ViewHolder>(
         object : DiffUtil.ItemCallback<SpoonacularResult>() {
             override fun areItemsTheSame(oldItem: SpoonacularResult, newItem: SpoonacularResult): Boolean {

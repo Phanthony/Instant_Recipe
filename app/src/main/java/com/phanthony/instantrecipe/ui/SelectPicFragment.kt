@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.phanthony.instantrecipe.R
 import kotlinx.android.synthetic.main.selected_pic_fragment.view.*
 import com.phanthony.instantrecipe.main.RecipeViewModel
@@ -37,11 +38,11 @@ class SelectPicFragment : Fragment() {
         image = viewModel.getImage()
         view.selectedImage.setImageBitmap(image)
 
-        nav = this.activity!!.findNavController(R.id.navHostFragment)
+        nav = this.findNavController()
 
         view.scanImageButton.setOnClickListener {
             viewModel.addImageToQueue(image!!)
-            nav.navigate(R.id.findRecipeFragment)
+            nav.navigate(R.id.action_selectPicFragment_to_findRecipeFragment)
         }
         return view
     }

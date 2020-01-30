@@ -5,22 +5,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:weightSum="1.0"
+        android:layout_margin="2dp"
 >
     <androidx.appcompat.widget.AppCompatTextView
-            android:paddingStart="15dp"
+            android:padding="5dp"
+            android:background="@color/itemColor"
+            android:layout_marginHorizontal="10dp"
             android:textSize="25sp"
             android:id="@+id/ingredientName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.9"/>
-    <androidx.appcompat.widget.AppCompatImageButton
-            android:background="@android:color/transparent"
-            android:layout_weight="0.1"
-            android:scaleType="fitCenter"
-            android:src="@drawable/remove"
-            android:id="@+id/removeButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"/>
-
-
+            android:layout_weight="1.0"/>
 </LinearLayout>
