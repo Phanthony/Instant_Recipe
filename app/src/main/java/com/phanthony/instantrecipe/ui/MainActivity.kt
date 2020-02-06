@@ -5,12 +5,16 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.fragment.NavHostFragment
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -27,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var startSnackBar: Snackbar
     lateinit var finishSnackBar: Snackbar
     lateinit var viewModel: RecipeViewModel
+    lateinit var navController: NavController
 
     val PERMISSIONS = arrayOf(
         android.Manifest.permission.WRITE_CONTACTS,
@@ -44,9 +49,10 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this,RecipeViewModelFactory(this.application)).get(RecipeViewModel::class.java)
 
         viewModel.observeQueue(this)
+        viewModel.observeIngList(this)
 
         val host: NavHostFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment? ?: return
-        val navController = host.navController
+        navController = host.navController
         setupBottomNav(navController)
 
         startSnackBar = Snackbar.make(findViewById(R.id.mainLayout),getString(R.string.scan_start),Snackbar.LENGTH_SHORT).setAnchorView(bottomNav)
@@ -68,6 +74,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = MenuInflater(baseContext)
+        inflater.inflate(R.menu.option_nav_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when(item?.itemId){
+            R.id.findRecipeFragment -> {
+                navController.navigate(R.id.findRecipeFragment)
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
+        }
     }
 
     private fun setupBottomNav(nav: NavController){

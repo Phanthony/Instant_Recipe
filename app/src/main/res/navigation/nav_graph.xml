@@ -2,23 +2,22 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/nav_graph"
-            app:startDestination="@id/findRecipeFragment">
+            app:startDestination="@id/ingredientFragment">
 
     <fragment
             android:id="@+id/findRecipeFragment"
             android:name="com.phanthony.instantrecipe.ui.FindRecipeFragment"
             android:label="FindRecipeFragment">
+        <action android:id="@+id/action_findRecipeFragment_to_selectPicFragment"
+                app:destination="@id/selectPicFragment"
+                app:enterAnim="@anim/nav_default_enter_anim" app:exitAnim="@anim/nav_default_exit_anim"
+                app:popEnterAnim="@anim/nav_default_pop_enter_anim" app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
 
     <fragment
             android:id="@+id/selectPicFragment"
             android:name="com.phanthony.instantrecipe.ui.SelectPicFragment"
-            android:label="SelectPicFragment">
-        <action android:id="@+id/action_selectPicFragment_to_findRecipeFragment"
-                app:destination="@id/findRecipeFragment"
-                app:enterAnim="@anim/nav_default_enter_anim" app:exitAnim="@anim/nav_default_exit_anim"
-                app:popEnterAnim="@anim/nav_default_pop_enter_anim" app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
-    </fragment>
+            android:label="SelectPicFragment"/>
 
     <fragment
             android:id="@+id/ingredientFragment"
@@ -42,5 +41,12 @@
             android:id="@+id/recipeStepFragment"
             android:name="com.phanthony.instantrecipe.ui.RecipeStepFragment"
             android:label="RecipeStepFragment">
+    </fragment>
+    <fragment android:id="@+id/savedRecipeFragment" android:name="com.phanthony.instantrecipe.ui.SavedRecipeFragment"
+              android:label="SavedRecipeFragment">
+        <action android:id="@+id/action_savedRecipeFragment_to_recipeStepFragment"
+                app:destination="@id/recipeStepFragment"
+                app:enterAnim="@animator/card_flip_right_in" app:exitAnim="@animator/card_flip_right_out"
+                app:popEnterAnim="@animator/card_flip_left_in" app:popExitAnim="@animator/card_flip_left_out"/>
     </fragment>
 </navigation>

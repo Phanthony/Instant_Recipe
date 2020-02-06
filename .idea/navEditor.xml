@@ -13,9 +13,18 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="-195" />
-                            <option name="y" value="-466" />
+                            <option name="x" value="-798" />
+                            <option name="y" value="-537" />
                           </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_findRecipeFragment_to_selectPicFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
                         </option>
                       </LayoutPositions>
                     </value>
@@ -74,23 +83,35 @@
                       </LayoutPositions>
                     </value>
                   </entry>
-                  <entry key="selectPicFragment">
+                  <entry key="savedRecipeFragment">
                     <value>
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="-510" />
-                            <option name="y" value="-500" />
+                            <option name="x" value="-123" />
+                            <option name="y" value="-299" />
                           </Point>
                         </option>
                         <option name="myPositions">
                           <map>
-                            <entry key="action_selectPicFragment_to_findRecipeFragment">
+                            <entry key="action_savedRecipeFragment_to_recipeStepFragment">
                               <value>
                                 <LayoutPositions />
                               </value>
                             </entry>
                           </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="selectPicFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="-366" />
+                            <option name="y" value="-505" />
+                          </Point>
                         </option>
                       </LayoutPositions>
                     </value>

@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.phanthony.instantrecipe.service.SpoonacularService
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -32,8 +33,9 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     AndroidViewModel(application) {
 
     private val TAG = "TEXT_FOUND"
-    private var recipeDao: RecipeDao? = db.recipeDao()
+    private var recipeDao: RecipeDao = db.recipeDao()
     private var recipeList: LiveData<PagedList<SpoonacularResult>?>? = null
+    private var savedRecipeList: LiveData<PagedList<SpoonacularResult>>? = null
     private var selectedImage: Bitmap? = null
     private var ingList: MutableLiveData<MutableSet<String>> = MutableLiveData(mutableSetOf())
     private var imageQueue: ArrayList<Bitmap> = arrayListOf()
@@ -47,10 +49,18 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         }
     }
 
-    fun initialSetup() {
-        val factory: DataSource.Factory<Int, SpoonacularResult>? = recipeDao?.getRecipe()
-        if(factory!= null) {
+    fun observeIngList(context: LifecycleOwner){
+        ingList.observe(context, Observer { ingSet ->
+            val factory: DataSource.Factory<Int, SpoonacularResult> = recipeDao.getRecipe(ingSet.toString())
             recipeList = LivePagedListBuilder(factory, 10).build()
+
+        })
+    }
+
+    fun initialSetup() {
+        val savedRecipeFactory: DataSource.Factory<Int, SpoonacularResult>? = recipeDao.getSavedRecipes()
+        if(savedRecipeFactory!=null){
+            savedRecipeList = LivePagedListBuilder(savedRecipeFactory, 10).build()
         }
     }
 
@@ -96,7 +106,7 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
                         resultBody.forEach {
                             it.recipeId = recipeId
                         }
-                        recipeDao?.insertInstruction(resultBody)
+                        recipeDao.insertInstruction(resultBody)
                         Result.success(1)
                     } else {
                         // No instructions for this recipe
@@ -107,9 +117,21 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
             }
     }
 
+    fun insertRecipe(recipe: SpoonacularResult){
+        recipeDao.insertRecipe(recipe)
+    }
+
+    @SuppressLint("CheckResult")
+    fun seeRecipeSaved(recipeId: Int): Maybe<Result<Boolean>>{
+        return getSingleRecipe(recipeId).map { singleRecipe ->
+            Result.success(singleRecipe.saved)
+        }
+    }
+
     fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
         val ingredients = setUpSet(set)
         return service.getRecipes(ingredients)
+            .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
             .map { res ->
                 val processedResult = res.result
@@ -119,9 +141,13 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
                 } else {
                     val resultBody = processedResult.getOrNull()!!
                     if (resultBody.isNotEmpty()) {
-                        recipeDao?.clearRecipes()
+                        val ingIndentifier = ingList.value!!.toString()
                         resultBody.forEach {
-                            recipeDao?.insertRecipe(it)
+                            seeRecipeSaved(it.id).subscribe { savedResult -> // Check if the recipe is in user's saved recipes
+                                it.saved = savedResult.getOrNull()!!
+                            }
+                            it.ingIdentifier = ingIndentifier
+                            recipeDao.insertRecipe(it)
                         }
                         Result.success(1)
                     } else {
@@ -159,6 +185,8 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
 
     fun getRecipeList() = recipeList
 
+    fun getSavedRecipeList() = savedRecipeList
+
     fun setScanning(value: Int) {
         scanning.value = value
     }
@@ -171,12 +199,36 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         return currentRecipe
     }
 
-    fun getSingleRecipe(recipeId: Int): Single<SpoonacularResult> {
-        return recipeDao!!.getRecipeSingle(recipeId)
+    fun getSingleRecipe(recipeId: Int): Maybe<SpoonacularResult> {
+        return recipeDao.getRecipeSingle(recipeId)
     }
 
     fun getRecipeInstructions(recipeId: Int): Single<List<RecipeInstruction>>{
-        return recipeDao!!.findInstruction(recipeId)
+        return recipeDao.findInstruction(recipeId)
+    }
+
+    fun setRecipeSaveAndSeen(recipe: SpoonacularResult) {
+        recipe.saved = true
+        recipe.seen = true
+    }
+
+    fun setRecipeSeen(recipe: SpoonacularResult) {
+        recipe.seen = true
+    }
+
+    fun setRecipeUnsave(recipe: SpoonacularResult){
+        recipe.saved = false
+    }
+
+    @SuppressLint("CheckResult")
+    fun changeRecipeInformation(recipeId: Int, change: (SpoonacularResult) -> Unit) {
+        getSingleRecipe(recipeId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribe { singleRecipe ->
+                change(singleRecipe)
+                insertRecipe(singleRecipe)
+            }
     }
 
 

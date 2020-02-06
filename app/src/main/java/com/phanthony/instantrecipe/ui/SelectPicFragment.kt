@@ -42,7 +42,7 @@ class SelectPicFragment : Fragment() {
 
         view.scanImageButton.setOnClickListener {
             viewModel.addImageToQueue(image!!)
-            nav.navigate(R.id.action_selectPicFragment_to_findRecipeFragment)
+            nav.navigate(R.id.ingredientFragment)
         }
         return view
     }

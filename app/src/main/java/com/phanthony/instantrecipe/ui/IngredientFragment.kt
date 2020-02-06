@@ -43,7 +43,6 @@ class IngredientFragment : Fragment() {
             ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
         }
 
-
         ingList = viewModel.getIngList().value!!
         adapter = IngredientAdapter(ingList.toMutableList())
 
@@ -51,7 +50,7 @@ class IngredientFragment : Fragment() {
         ingredientList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
         ingredientList.adapter = adapter
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,

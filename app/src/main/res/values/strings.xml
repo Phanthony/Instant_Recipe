@@ -7,13 +7,14 @@
     <string name="find_recipe">Find recipes</string>
     <string name="searchHint">Search an ingredient</string>
     <string name="ing_Title">Ingredients</string>
-    <string name="scan_Title">Scan</string>
-    <string name="scan_start">Scanning image</string>
-    <string name="scan_finish">Finished Scanning Image</string>
-    <string name="no_recipe">Could not find any new recipes</string>
+    <string name="scan_Title">Scan a receipt</string>
+    <string name="saved_recipes_title">Saved Recipes</string>
+    <string name="scan_start">Scanning image.</string>
+    <string name="scan_finish">Finished Scanning Image.</string>
+    <string name="no_recipe">Could not find any new recipes.</string>
     <string name="recipes">Recipes</string>
-    <string name="search_recipes">Searching for recipes</string>
-    <string name="no_instruction">Sorry! There are no instructions for this recipe</string>
+    <string name="search_recipes">Searching for recipes.</string>
+    <string name="no_instruction">Sorry! There are no instructions for this recipe.</string>
     <string name="error_network_connection_issue">You have a bad Internet connection. Reconnect, then try again.
     </string>
     <string name="error_500_600_response_code">Sorry! There seems to be an error with the system. The team has been
@@ -24,4 +25,6 @@
     </string>
     <string name="error">Error</string>
     <string name="Ok">Ok</string>
+    <string name="not_saved">Sorry! There are no instructions for this recipe to be saved.</string>
+    <string name="saved_recipe">Added to your saved recipes.</string>
 </resources>

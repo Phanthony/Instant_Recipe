@@ -25,7 +25,6 @@ class RecipeAdapter(val context: Context, val findRecipe: (recipeId: Int) -> Uni
             override fun areContentsTheSame(oldItem: SpoonacularResult, newItem: SpoonacularResult): Boolean {
                 return oldItem == newItem
             }
-
         }
     ) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -41,6 +40,7 @@ class RecipeAdapter(val context: Context, val findRecipe: (recipeId: Int) -> Uni
             holder.view.setOnClickListener {
                 findRecipe(current.id)
             }
+            holder.id.text = current.id.toString()
         } else {
             holder.image.background = context.getDrawable(R.drawable.placeholder)
         }
@@ -50,5 +50,6 @@ class RecipeAdapter(val context: Context, val findRecipe: (recipeId: Int) -> Uni
         val name = itemView.findViewById<AppCompatTextView>(R.id.recipeName)
         val image = itemView.findViewById<AppCompatImageView>(R.id.recipeImage)
         val view = itemView.findViewById<LinearLayout>(R.id.recipeView)
+        val id = itemView.findViewById<AppCompatTextView>(R.id.recipeId)
     }
 }
