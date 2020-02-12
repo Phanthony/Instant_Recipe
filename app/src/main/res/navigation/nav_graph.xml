@@ -41,12 +41,23 @@
             android:id="@+id/recipeStepFragment"
             android:name="com.phanthony.instantrecipe.ui.RecipeStepFragment"
             android:label="RecipeStepFragment">
+        <argument
+            android:name="fromSaved"
+            app:argType="boolean"
+            android:defaultValue="false"
+        />
     </fragment>
     <fragment android:id="@+id/savedRecipeFragment" android:name="com.phanthony.instantrecipe.ui.SavedRecipeFragment"
               android:label="SavedRecipeFragment">
         <action android:id="@+id/action_savedRecipeFragment_to_recipeStepFragment"
                 app:destination="@id/recipeStepFragment"
                 app:enterAnim="@animator/card_flip_right_in" app:exitAnim="@animator/card_flip_right_out"
-                app:popEnterAnim="@animator/card_flip_left_in" app:popExitAnim="@animator/card_flip_left_out"/>
+                app:popEnterAnim="@animator/card_flip_left_in" app:popExitAnim="@animator/card_flip_left_out">
+            <argument
+                    android:name="fromSaved"
+                    app:argType="boolean"
+                    android:defaultValue="true"
+            />
+        </action>
     </fragment>
 </navigation>

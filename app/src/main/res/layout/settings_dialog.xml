@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatTextView
+            android:textColor="#000"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/search"
+            android:textAlignment="center"
+            android:textSize="17sp"
+            />
+
+    <RadioGroup
+            android:id="@+id/searchRadioGroup"
+            android:layout_margin="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <RadioButton
+                android:id="@+id/minIngredientsRadio"
+                android:textSize="13sp"
+                android:text="@string/minimize_missing_ingredients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        <RadioButton
+                android:id="@+id/maxIngredientsRadio"
+                android:textSize="13sp"
+                android:text="@string/maximize_used_ingredients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+    </RadioGroup>
+
+</LinearLayout>

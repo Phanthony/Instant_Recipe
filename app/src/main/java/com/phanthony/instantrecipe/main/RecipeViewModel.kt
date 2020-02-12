@@ -10,17 +10,13 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
-import com.phanthony.instantrecipe.database.RecipeDao
-import com.phanthony.instantrecipe.database.RecipeDataBase
-import com.phanthony.instantrecipe.database.RecipeInstruction
-import com.phanthony.instantrecipe.database.SpoonacularResult
+import com.phanthony.instantrecipe.database.*
 import io.reactivex.Single
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.phanthony.instantrecipe.service.SpoonacularService
 import io.reactivex.Maybe
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlin.Result
@@ -33,6 +29,7 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     AndroidViewModel(application) {
 
     private val TAG = "TEXT_FOUND"
+    private var settingsDao: UserSettingsDao = db.settingsDao()
     private var recipeDao: RecipeDao = db.recipeDao()
     private var recipeList: LiveData<PagedList<SpoonacularResult>?>? = null
     private var savedRecipeList: LiveData<PagedList<SpoonacularResult>>? = null
@@ -41,7 +38,8 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
     private var imageQueue: ArrayList<Bitmap> = arrayListOf()
     private var currentRecipe: MutableLiveData<Int> = MutableLiveData()
     var scanning = MutableLiveData<Int>(IDLE)
-
+    private var userSettings = settingsDao.getUserSettings()
+    private var searchSettings = 0
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -53,7 +51,19 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
         ingList.observe(context, Observer { ingSet ->
             val factory: DataSource.Factory<Int, SpoonacularResult> = recipeDao.getRecipe(ingSet.toString())
             recipeList = LivePagedListBuilder(factory, 10).build()
+        })
+    }
 
+    @SuppressLint("CheckResult")
+    fun changeSearchSettings(code: Int){
+        settingsDao.getSingleSetting().subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe { settings ->
+            settings.ingredientSearch = code
+        }
+    }
+
+    fun observeSettings(context: LifecycleOwner){
+        userSettings.observe(context, Observer { settings ->
+            searchSettings = settings.ingredientSearch
         })
     }
 
@@ -130,7 +140,7 @@ class RecipeViewModel(application: Application, db: RecipeDataBase, val service:
 
     fun getRecipes(set: MutableSet<String>): Single<Result<Int>> {
         val ingredients = setUpSet(set)
-        return service.getRecipes(ingredients)
+        return service.getRecipes(ingredients,searchSettings)
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
             .map { res ->

@@ -10,7 +10,7 @@ import retrofit2.adapter.rxjava2.Result as RxResult
 interface SpoonacularService {
     fun detectIngredients(texts: String): Single<WrappedResult<IngredientResults>>
 
-    fun getRecipes(ingredients: String): Single<WrappedResult<List<SpoonacularResult>>>
+    fun getRecipes(ingredients: String, ranking: Int): Single<WrappedResult<List<SpoonacularResult>>>
 
     fun getRecipeInstructions(recipeId: Int): Single<WrappedResult<List<RecipeInstruction>>>
 

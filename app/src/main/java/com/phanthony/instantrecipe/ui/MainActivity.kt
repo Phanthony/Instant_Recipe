@@ -1,5 +1,6 @@
 package com.phanthony.instantrecipe.ui
 
+import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
@@ -8,7 +9,9 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
@@ -20,6 +23,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
+import com.phanthony.instantrecipe.database.UserSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,39 +36,63 @@ class MainActivity : AppCompatActivity() {
     lateinit var finishSnackBar: Snackbar
     lateinit var viewModel: RecipeViewModel
     lateinit var navController: NavController
-
-    val PERMISSIONS = arrayOf(
-        android.Manifest.permission.WRITE_CONTACTS,
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        android.Manifest.permission.READ_SMS,
-        android.Manifest.permission.CAMERA)
+    lateinit var settingDialog: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if(!hasPermissions(this,*PERMISSIONS)){
-            ActivityCompat.requestPermissions(this,PERMISSIONS,1)
-        }
 
-        viewModel = ViewModelProviders.of(this,RecipeViewModelFactory(this.application)).get(RecipeViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, RecipeViewModelFactory(this.application))
+            .get(RecipeViewModel::class.java)
 
         viewModel.observeQueue(this)
         viewModel.observeIngList(this)
+        viewModel.observeSettings(this)
 
-        val host: NavHostFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment? ?: return
+        val host: NavHostFragment =
+            supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment?
+                ?: return
         navController = host.navController
         setupBottomNav(navController)
 
-        startSnackBar = Snackbar.make(findViewById(R.id.mainLayout),getString(R.string.scan_start),Snackbar.LENGTH_SHORT).setAnchorView(bottomNav)
-        finishSnackBar = Snackbar.make(findViewById(R.id.mainLayout),getString(R.string.scan_finish),Snackbar.LENGTH_SHORT).setAnchorView(bottomNav)
+        startSnackBar = Snackbar.make(
+            findViewById(R.id.mainLayout),
+            getString(R.string.scan_start),
+            Snackbar.LENGTH_SHORT
+        ).setAnchorView(bottomNav)
+        finishSnackBar = Snackbar.make(
+            findViewById(R.id.mainLayout),
+            getString(R.string.scan_finish),
+            Snackbar.LENGTH_SHORT
+        ).setAnchorView(bottomNav)
+
+        setupSettingDialog()
 
         observeScanner()
-
     }
 
-    fun observeScanner(){
+    fun setupSettingDialog() {
+        val dialogBuilder = AlertDialog.Builder(this)
+        val view = layoutInflater.inflate(R.layout.settings_dialog, null)
+        val rg = view.findViewById<RadioGroup>(R.id.searchRadioGroup)
+        rg.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.maxIngredientsRadio -> {
+                    viewModel.changeSearchSettings(1)
+                }
+                R.id.minIngredientsRadio -> {
+                    viewModel.changeSearchSettings(2)
+                }
+            }
+        }
+        dialogBuilder.setView(view)
+        dialogBuilder.setTitle(getString(R.string.settings))
+        settingDialog = dialogBuilder.create()
+    }
+
+    fun observeScanner() {
         viewModel.scanning.observe(this, Observer { status ->
-            when(status){
+            when (status) {
                 SCANNING -> {
                     startSnackBar.show()
                 }
@@ -83,9 +111,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when(item?.itemId){
+        return when (item?.itemId) {
             R.id.findRecipeFragment -> {
                 navController.navigate(R.id.findRecipeFragment)
+                true
+            }
+            R.id.settingsMenu -> {
+                settingDialog.show()
                 true
             }
             else -> {
@@ -94,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBottomNav(nav: NavController){
+    private fun setupBottomNav(nav: NavController) {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         bottomNav.itemIconTintList = null
         bottomNav.background = ColorDrawable(getColor(R.color.backgroundColor))
@@ -103,12 +135,4 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
-    private fun hasPermissions(context: Context, vararg permissions: String): Boolean = permissions.all {
-        ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-
-
-
 }

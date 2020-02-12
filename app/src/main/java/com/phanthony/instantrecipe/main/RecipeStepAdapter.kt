@@ -10,7 +10,7 @@ import com.phanthony.instantrecipe.R
 import com.phanthony.instantrecipe.database.RecipeInstruction
 import com.phanthony.instantrecipe.database.RecipeSteps
 
-class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>) :
+class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>, val saved: Boolean) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder.itemViewType) {
@@ -19,12 +19,22 @@ class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>) :
                 val current = stepList[position]
                 holder.recipeTitle.text = current.first
             }
-            1 ->{
-                holder as ViewHolderIng
-                val current = stepList[position]
-                val ingList = current.first.split("-splithere-")
-                holder.missedIng.text = ingList[0]
-                holder.usedIng.text = ingList[1]
+            1 -> {
+                when (saved) {
+                    false -> {
+                        holder as ViewHolderIng
+                        val current = stepList[position]
+                        val ingList = current.first.split("-splithere-")
+                        holder.missedIng.text = ingList[0]
+                        holder.usedIng.text = ingList[1]
+                    }
+                    true -> {
+                        holder as ViewHolderIngSaved
+                        val current = stepList[position]
+                        val ingList = current.first
+                        holder.usedIng.text = ingList
+                    }
+                }
             }
             2 -> {
                 holder as ViewHolderStep
@@ -36,9 +46,8 @@ class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>) :
                     } else {
                         holder.steps.setTextSize(TypedValue.COMPLEX_UNIT_SP, 0f)
                     }
-                }
-                else {
-                    holder.steps.setTextSize(TypedValue.COMPLEX_UNIT_SP,18f)
+                } else {
+                    holder.steps.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                     holder.steps.text = current.first
                 }
             }
@@ -48,16 +57,36 @@ class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             0 -> {
-                val layout = LayoutInflater.from(parent.context).inflate(R.layout.recipe_step_title, parent, false)
+                val layout = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.recipe_step_title, parent, false)
                 ViewHolderTitle(layout)
             }
 
             1 -> {
-                val layout = LayoutInflater.from(parent.context).inflate(R.layout.used_ingredients_missed_ingredients_layout, parent, false)
-                ViewHolderIng(layout)
+                when(saved) {
+                        false -> {
+                            val layout = LayoutInflater.from(parent.context)
+                                .inflate(
+                                    R.layout.used_ingredients_missed_ingredients_layout,
+                                    parent,
+                                    false
+                                )
+                            ViewHolderIng(layout)
+                        }
+                    true -> {
+                        val layout = LayoutInflater.from(parent.context)
+                            .inflate(
+                                R.layout.ingredients_in_recipe,
+                                parent,
+                                false
+                            )
+                        ViewHolderIngSaved(layout)
+                    }
+                }
             }
             else -> {
-                val layout = LayoutInflater.from(parent.context).inflate(R.layout.recipe_step_layout, parent, false)
+                val layout = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.recipe_step_layout, parent, false)
                 ViewHolderStep(layout)
             }
         }
@@ -95,8 +124,12 @@ class RecipeStepAdapter(var stepList: ArrayList<Pair<String, Boolean>>) :
         val recipeTitle = itemView.findViewById<AppCompatTextView>(R.id.recipeTitle)
     }
 
-    class ViewHolderIng(itemView: View) : RecyclerView.ViewHolder(itemView){
+    class ViewHolderIng(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val missedIng = itemView.findViewById<AppCompatTextView>(R.id.missingIngredientsRecipe)
+        val usedIng = itemView.findViewById<AppCompatTextView>(R.id.usedIngredientsRecipe)
+    }
+
+    class ViewHolderIngSaved(itemView: View) : RecyclerView.ViewHolder(itemView){
         val usedIng = itemView.findViewById<AppCompatTextView>(R.id.usedIngredientsRecipe)
     }
 }

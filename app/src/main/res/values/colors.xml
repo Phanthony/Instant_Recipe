@@ -7,4 +7,9 @@
     <color name="itemColor">#edebe9</color>
     <color name="buttonColor">#249964 </color>
     <color name="backgroundColor">#245999</color>
+
+    <color name="textColor">#000</color>
+
+    <color name="removeColor">#ff2212</color>
+    <color name="addColor">#69ff12</color>
 </resources>

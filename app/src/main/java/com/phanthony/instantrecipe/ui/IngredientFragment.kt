@@ -1,9 +1,14 @@
 package com.phanthony.instantrecipe.ui
 
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import com.phanthony.instantrecipe.main.IngredientAdapter
 import com.phanthony.instantrecipe.main.RecipeViewModel
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,10 +29,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
 import com.phanthony.instantrecipe.extensions.getErrorDialog
+import com.phanthony.instantrecipe.extensions.px
 import io.reactivex.schedulers.Schedulers
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 class IngredientFragment : Fragment() {
 
@@ -51,6 +58,12 @@ class IngredientFragment : Fragment() {
         ingredientList.adapter = adapter
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            val paint = Paint().apply {
+                setARGB(255,255,0,0)
+            }
+            val icon = BitmapFactory.decodeResource(resources,R.drawable.delete_icon)
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -62,6 +75,34 @@ class IngredientFragment : Fragment() {
                 val newSet = viewModel.getIngList().value!!
                 newSet.remove(remove)
                 viewModel.setIngList(newSet)
+            }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ){
+                if(actionState == ItemTouchHelper.ACTION_STATE_SWIPE){
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
+                    val itemView = viewHolder.itemView
+
+                    c.drawRoundRect(itemView.right.toFloat() + dX,itemView.top.toFloat(),itemView.right.toFloat(),itemView.bottom.toFloat(),10.0f,10.0f,paint)
+                    c.drawBitmap(icon,(itemView.right - 16.px - icon.width).toFloat(), (itemView.top + ( itemView.bottom - itemView.top - icon.height)/2).toFloat(), paint)
+
+                }
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             }
 
         }).attachToRecyclerView(ingredientList)

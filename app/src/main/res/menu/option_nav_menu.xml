@@ -3,6 +3,9 @@
     <item
             android:id="@+id/findRecipeFragment"
             android:title="@string/scan_Title"
-            android:icon="@drawable/magnifyingglass"
     />
+    <item
+            android:id="@+id/settingsMenu"
+            android:title="@string/settings"
+        />
 </menu>

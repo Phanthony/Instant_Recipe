@@ -2,7 +2,9 @@ package com.phanthony.instantrecipe.ui
 
 import com.phanthony.instantrecipe.main.RecipeViewModel
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -13,6 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
@@ -31,11 +34,21 @@ class FindRecipeFragment: Fragment() {
     private val RESULT_LOAD_IMAGE = 1
     private val CAMERA_REQUREST = 2
 
+    private val PERMISSIONS = arrayOf(
+        android.Manifest.permission.WRITE_CONTACTS,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        android.Manifest.permission.READ_SMS,
+        android.Manifest.permission.CAMERA)
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.find_recipes_fragment,container,false)
 
         viewModel = activity!!.run {
             ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
+        }
+
+        if(!hasPermissions(this.requireContext(),*PERMISSIONS)){
+            ActivityCompat.requestPermissions(this.requireActivity(),PERMISSIONS,1)
         }
 
         val uploadReceipt: AppCompatButton = view.findViewById(R.id.uploadReceiptButton)
@@ -48,6 +61,8 @@ class FindRecipeFragment: Fragment() {
         takePicture.setOnClickListener {
             dispatchTakePictureIntent()
         }
+
+
 
         return view
     }
@@ -77,6 +92,10 @@ class FindRecipeFragment: Fragment() {
         }
     }
 
+    private fun hasPermissions(context: Context, vararg permissions: String): Boolean = permissions.all {
+        ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+
     lateinit var currentPhotoPath: String
 
 
@@ -85,7 +104,7 @@ class FindRecipeFragment: Fragment() {
     private fun createImageFile(): File {
         // Create an image file name
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val storageDir: File = activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val storageDir: File? = activity!!.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
             "JPEG_${timeStamp}_", /* prefix */
             ".jpg", /* suffix */

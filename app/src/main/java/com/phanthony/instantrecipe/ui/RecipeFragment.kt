@@ -1,6 +1,9 @@
 package com.phanthony.instantrecipe.ui
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -20,14 +23,17 @@ import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
 import com.phanthony.instantrecipe.database.SpoonacularResult
 import com.phanthony.instantrecipe.extensions.getErrorDialog
+import com.phanthony.instantrecipe.extensions.px
 import com.phanthony.instantrecipe.main.RecipeAdapter
 import com.phanthony.instantrecipe.main.RecipeViewModel
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
+import com.phanthony.instantrecipe.service.WrappedResult
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import kotlin.math.abs
 
 class RecipeFragment : Fragment() {
 
@@ -35,11 +41,18 @@ class RecipeFragment : Fragment() {
     private lateinit var viewModel: RecipeViewModel
     lateinit var nav: NavController
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.recipes_fragment, container, false)
 
         viewModel = activity!!.run {
-            ViewModelProviders.of(this, RecipeViewModelFactory(this.application))[RecipeViewModel::class.java]
+            ViewModelProviders.of(
+                this,
+                RecipeViewModelFactory(this.application)
+            )[RecipeViewModel::class.java]
         }
 
         nav = this.findNavController()
@@ -51,16 +64,92 @@ class RecipeFragment : Fragment() {
         recipeList.adapter = adapter
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            val paint = Paint().apply {
+                setARGB(255, 105, 255, 18)
+            }
+            val icon = BitmapFactory.decodeResource(resources, R.drawable.add_icon)
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    val itemView = viewHolder.itemView
+
+                    c.drawRoundRect(
+                        itemView.right.toFloat() + dX,
+                        itemView.top.toFloat(),
+                        itemView.right.toFloat(),
+                        itemView.bottom.toFloat(),
+                        5.0f,
+                        5.0f,
+                        paint
+                    )
+                    c.drawBitmap(
+                        icon,
+                        (itemView.right - 16.px - icon.width).toFloat(),
+                        (itemView.top + (itemView.bottom - itemView.top - icon.height) / 2).toFloat(),
+                        paint
+                    )
+
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
+                }
+            }
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean = false
 
+            @SuppressLint("CheckResult")
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val id = viewHolder.itemView.findViewById<AppCompatTextView>(R.id.recipeId).text.toString().toInt()
-                checkRecipeExists(id)
-                adapter.notifyItemChanged(viewHolder.adapterPosition)
+                //checkRecipeExists(id, viewHolder.adapterPosition)
+                test(id).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe { recipeResult ->
+                    if(recipeResult.result.isFailure){
+                        getErrorDialog(recipeResult.result.exceptionOrNull()!!.message!!,this@RecipeFragment.requireContext()).show()
+                        adapter.notifyItemChanged(viewHolder.adapterPosition)
+                    } else {
+                        when(recipeResult.result.getOrNull()!!){
+                            1 -> {
+                                Snackbar.make(
+                                    activity!!.findViewById(R.id.mainLayout),
+                                    R.string.saved_recipe,
+                                    Snackbar.LENGTH_SHORT
+                                )
+                                    .setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                    .show()
+                                adapter.notifyItemChanged(viewHolder.adapterPosition)
+                            }
+                            2 -> {
+                                Snackbar.make(
+                                    activity!!.findViewById(R.id.mainLayout),
+                                    R.string.not_saved,
+                                    Snackbar.LENGTH_SHORT
+                                )
+                                    .setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                    .show()
+                                adapter.notifyItemChanged(viewHolder.adapterPosition)
+                            }
+                        }
+                        adapter.notifyItemChanged(viewHolder.adapterPosition)
+                    }
+                }
             }
         }).attachToRecyclerView(recipeList)
 
@@ -69,23 +158,92 @@ class RecipeFragment : Fragment() {
         return view
     }
 
+    @SuppressLint("CheckResult")
+    private fun test(recipeId: Int): Single<WrappedResult<Int>> {
+        return checkIfRecipeInDatabase(recipeId).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).map { inDataBase ->
+            if (inDataBase.result.isFailure) {
+                WrappedResult(Result.failure(inDataBase.result.exceptionOrNull()!!))
+            } else {
+                when (inDataBase.result.getOrNull()!!) {
+                    true -> { // Recipe in database already
+                        viewModel.changeRecipeInformation(recipeId,viewModel::setRecipeSaveAndSeen)
+                        WrappedResult(Result.success(1))
+                    }
+                    false -> { // Recipe isn't in database, check if api call is needed
+                        WrappedResult(Result.success(2))
+                    }
+                }
+            }
+        }.map { recipeInDb ->
+            if (recipeInDb.result.isFailure) {
+                WrappedResult(Result.failure(recipeInDb.result.exceptionOrNull()!!))
+            } else {
+                when (recipeInDb.result.getOrNull()!!) {
+                    1 -> recipeInDb
+                    else -> {
+                        val needApiCall = checkIfRecipeSeen(recipeId).blockingGet()
+                        if(needApiCall.getOrNull()!!){ // Already seen
+                            WrappedResult(Result.success(2))
+                        } else { // never seen
+                            WrappedResult(Result.success(3))
+                        }
+                    }
+                }
+            }
+        }.map { needApiCall ->
+            if(needApiCall.result.isFailure){
+                needApiCall
+            } else {
+                when(needApiCall.result.getOrNull()!!){
+                    1 -> needApiCall // Recipe in database already
+                    2 -> needApiCall // Already check for recipe before
+                    else -> { // make the api call
+                        val apiResult = viewModel.getRecipeInstruction(recipeId).blockingGet()
+                        if(apiResult.isFailure){
+                            WrappedResult(Result.failure(apiResult.exceptionOrNull()!!))
+                        } else {
+                            when(apiResult.getOrNull()!!){
+                                1 -> { // Instructions found
+                                    viewModel.changeRecipeInformation(recipeId,viewModel::setRecipeSaveAndSeen)
+                                    WrappedResult(Result.success(1))
+                                }
+                                else -> {// No instructions found
+                                    viewModel.changeRecipeInformation(recipeId,viewModel::setRecipeSeen)
+                                    WrappedResult(Result.success(2))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @SuppressLint("CheckResult")
-    private fun checkRecipeExists(recipeId: Int) {
-        checkIfRecipeInDatabase(recipeId).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+    private fun checkRecipeExists(recipeId: Int, position: Int) {
+        checkIfRecipeInDatabase(recipeId).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe { result ->
-                if (result.isFailure) {
-                    getErrorDialog(result.exceptionOrNull()!!.message!!,this.requireContext()).show()
+                if (result.result.isFailure) {
+                    getErrorDialog(
+                        result.result.exceptionOrNull()!!.message!!,
+                        this.requireContext()
+                    ).show()
                 } else {
-                    when (result.getOrNull()!!) {
+                    when (result.result.getOrNull()!!) {
                         true -> { // Recipe in database already
-                            viewModel.changeRecipeInformation(recipeId, viewModel::setRecipeSaveAndSeen)
+                            viewModel.changeRecipeInformation(
+                                recipeId,
+                                viewModel::setRecipeSaveAndSeen
+                            )
                             Snackbar.make(
                                 activity!!.findViewById(R.id.mainLayout),
                                 R.string.saved_recipe,
                                 Snackbar.LENGTH_SHORT
-                            ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                            )
+                                .setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
                                 .show()
+                            adapter.notifyItemChanged(position)
                         }
                         false -> { // Recipe isn't in database, check if api call is needed
                             checkIfRecipeSeen(recipeId)
@@ -97,35 +255,59 @@ class RecipeFragment : Fragment() {
                                             activity!!.findViewById(R.id.mainLayout),
                                             R.string.not_saved,
                                             Snackbar.LENGTH_SHORT
-                                        ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                        ).setAnchorView(
+                                            activity!!.findViewById<BottomNavigationView>(R.id.bottomNav)
+                                        )
                                             .show()
+                                        adapter.notifyItemChanged(position)
                                     } else { // make the api call
-                                        viewModel.getRecipeInstruction(recipeId).subscribe { recipeResult ->
-                                            if (recipeResult.isFailure) {
-                                                getErrorDialog(recipeResult.exceptionOrNull()!!.message!!,this.requireContext()).show()
-                                            } else {
-                                                when (recipeResult.getOrNull()!!) {
-                                                    1 -> { // Instructions found
-                                                        viewModel.changeRecipeInformation(recipeId, viewModel::setRecipeSaveAndSeen)
-                                                        Snackbar.make(
-                                                            activity!!.findViewById(R.id.mainLayout),
-                                                            R.string.saved_recipe,
-                                                            Snackbar.LENGTH_SHORT
-                                                        ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
-                                                            .show()
-                                                    }
-                                                    2 -> { // No instructions found
-                                                        viewModel.changeRecipeInformation(recipeId, viewModel::setRecipeSeen)
-                                                        Snackbar.make(
-                                                            activity!!.findViewById(R.id.mainLayout),
-                                                            R.string.not_saved,
-                                                            Snackbar.LENGTH_SHORT
-                                                        ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
-                                                            .show()
+                                        viewModel.getRecipeInstruction(recipeId)
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe { recipeResult ->
+                                                if (recipeResult.isFailure) {
+                                                    getErrorDialog(
+                                                        recipeResult.exceptionOrNull()!!.message!!,
+                                                        this.requireContext()
+                                                    ).show()
+                                                } else {
+                                                    when (recipeResult.getOrNull()!!) {
+                                                        1 -> { // Instructions found
+                                                            viewModel.changeRecipeInformation(
+                                                                recipeId,
+                                                                viewModel::setRecipeSaveAndSeen
+                                                            )
+                                                            Snackbar.make(
+                                                                activity!!.findViewById(R.id.mainLayout),
+                                                                R.string.saved_recipe,
+                                                                Snackbar.LENGTH_SHORT
+                                                            ).setAnchorView(
+                                                                activity!!.findViewById<BottomNavigationView>(
+                                                                    R.id.bottomNav
+                                                                )
+                                                            )
+                                                                .show()
+                                                            adapter.notifyItemChanged(position)
+                                                        }
+                                                        2 -> { // No instructions found
+                                                            viewModel.changeRecipeInformation(
+                                                                recipeId,
+                                                                viewModel::setRecipeSeen
+                                                            )
+                                                            Snackbar.make(
+                                                                activity!!.findViewById(R.id.mainLayout),
+                                                                R.string.not_saved,
+                                                                Snackbar.LENGTH_SHORT
+                                                            ).setAnchorView(
+                                                                activity!!.findViewById<BottomNavigationView>(
+                                                                    R.id.bottomNav
+                                                                )
+                                                            )
+                                                                .show()
+                                                            adapter.notifyItemChanged(position)
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
                                     }
                                 }
                         }
@@ -135,14 +317,15 @@ class RecipeFragment : Fragment() {
     }
 
     @SuppressLint("CheckResult")
-    private fun checkIfRecipeInDatabase(recipeId: Int): Single<Result<Boolean>> {
-        return viewModel.getRecipeInstructions(recipeId).subscribeOn(Schedulers.io()).map { foundRecipes ->
-            if (foundRecipes.isNotEmpty()) {
-                Result.success(true)
-            } else {
-                Result.success(false)
+    private fun checkIfRecipeInDatabase(recipeId: Int): Single<WrappedResult<Boolean>> {
+        return viewModel.getRecipeInstructions(recipeId).subscribeOn(Schedulers.io())
+            .map { foundRecipes ->
+                if (foundRecipes.isNotEmpty()) {
+                    WrappedResult(Result.success(true))
+                } else {
+                    WrappedResult(Result.success(false))
+                }
             }
-        }
     }
 
     private fun checkIfRecipeSeen(recipeId: Int): Maybe<Result<Boolean>> {
@@ -166,7 +349,7 @@ class RecipeFragment : Fragment() {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { recipeSaved ->
-                if (recipeSaved.getOrNull()!!) { // recipe is in database
+                if (recipeSaved.result.getOrNull()!!) { // recipe is in database
                     viewModel.setRecipe(recipeId)
                     nav.navigate(R.id.action_recipeFragment_to_recipeStepFragment)
                 } else { // recipe is not in database, check if previously seen to remove redundant calls
@@ -179,7 +362,8 @@ class RecipeFragment : Fragment() {
                                     activity!!.findViewById(R.id.mainLayout),
                                     R.string.not_saved,
                                     Snackbar.LENGTH_SHORT
-                                ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                )
+                                    .setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
                                     .show()
                             } else { // hasn't been checked make the api call
                                 viewModel.getRecipeInstruction(recipeId)
@@ -187,12 +371,10 @@ class RecipeFragment : Fragment() {
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe { callResult ->
                                         if (callResult.isFailure) {
-                                            Snackbar.make(
-                                                activity!!.findViewById(R.id.mainLayout),
+                                            getErrorDialog(
                                                 callResult.exceptionOrNull()!!.message!!,
-                                                Snackbar.LENGTH_SHORT
-                                            ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
-                                                .show()
+                                                this.requireContext()
+                                            ).show()
                                         } else {
                                             when (callResult.getOrNull()!!) {
                                                 1 -> { // call found instructions
@@ -204,11 +386,18 @@ class RecipeFragment : Fragment() {
                                                         activity!!.findViewById(R.id.mainLayout),
                                                         R.string.no_instruction,
                                                         Snackbar.LENGTH_SHORT
-                                                    ).setAnchorView(activity!!.findViewById<BottomNavigationView>(R.id.bottomNav))
+                                                    ).setAnchorView(
+                                                        activity!!.findViewById<BottomNavigationView>(
+                                                            R.id.bottomNav
+                                                        )
+                                                    )
                                                         .show()
                                                 }
                                             }
-                                            viewModel.changeRecipeInformation(recipeId, viewModel::setRecipeSeen)
+                                            viewModel.changeRecipeInformation(
+                                                recipeId,
+                                                viewModel::setRecipeSeen
+                                            )
                                         }
                                     }
                             }

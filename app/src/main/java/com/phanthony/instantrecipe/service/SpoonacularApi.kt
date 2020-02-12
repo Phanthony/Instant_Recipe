@@ -9,8 +9,8 @@ import retrofit2.http.*
 
 interface SpoonacularApi {
 
-    @GET("recipes/findByIngredients?number=100&ignorePantry=true&ranking=1")
-    fun getRecipes(@Query("ingredients", encoded = true) ingredients: String, @Query("apiKey") apiKey: String)
+    @GET("recipes/findByIngredients?number=100&ignorePantry=true")
+    fun getRecipes(@Query("ingredients", encoded = true) ingredients: String, @Query("apiKey") apiKey: String, @Query("ranking") ranking: Int)
             : Single<RxResult<List<SpoonacularResult>>>
 
     @GET("recipes/{recipeId}/analyzedInstructions")

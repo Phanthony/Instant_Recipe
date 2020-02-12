@@ -21,8 +21,8 @@ class RetrofitSpoonacular(private val spoonService: SpoonacularApi, private val 
         }
     }
 
-    override fun getRecipes(ingredients: String): Single<WrappedResult<List<SpoonacularResult>>> {
-        return spoonService.getRecipes(ingredients, "561d02ab93884e1eb9c633a623c27b92").map { result ->
+    override fun getRecipes(ingredients: String, ranking: Int): Single<WrappedResult<List<SpoonacularResult>>> {
+        return spoonService.getRecipes(ingredients, "561d02ab93884e1eb9c633a623c27b92", ranking).map { result ->
             val processedResult = responseProcessor.process(result)
             val returnResult = if (processedResult.isFailure()) {
                 WrappedResult(KtResult.failure(processedResult.error!!))

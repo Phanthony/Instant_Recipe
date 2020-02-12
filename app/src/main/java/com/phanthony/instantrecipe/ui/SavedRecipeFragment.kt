@@ -1,6 +1,9 @@
 package com.phanthony.instantrecipe.ui
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -18,17 +21,20 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.phanthony.instantrecipe.R
+import com.phanthony.instantrecipe.extensions.dp
 import com.phanthony.instantrecipe.extensions.getErrorDialog
+import com.phanthony.instantrecipe.extensions.px
+import com.phanthony.instantrecipe.main.RecipeAdapter
 import com.phanthony.instantrecipe.main.RecipeViewModel
 import com.phanthony.instantrecipe.main.RecipeViewModelFactory
-import com.phanthony.instantrecipe.main.SavedRecipeAdapter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import kotlin.math.abs
 
 class SavedRecipeFragment: Fragment() {
 
-    private lateinit var adapter: SavedRecipeAdapter
+    private lateinit var adapter: RecipeAdapter
     private lateinit var viewModel: RecipeViewModel
     lateinit var nav: NavController
 
@@ -41,13 +47,19 @@ class SavedRecipeFragment: Fragment() {
 
         nav = this.findNavController()
 
-        adapter = SavedRecipeAdapter(context!!, this::checkIfRecipeExists)
+        adapter = RecipeAdapter(context!!, this::checkIfRecipeExists)
 
         val recipeList = view.findViewById<RecyclerView>(R.id.recipeList)
         recipeList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
         recipeList.adapter = adapter
 
+
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            val paint = Paint().apply {
+                setARGB(255,255,34,18)
+            }
+            val icon = BitmapFactory.decodeResource(resources,R.drawable.delete_icon)
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -57,6 +69,37 @@ class SavedRecipeFragment: Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val id = viewHolder.itemView.findViewById<AppCompatTextView>(R.id.recipeId).text.toString().toInt()
                 viewModel.changeRecipeInformation(id,viewModel::setRecipeUnsave)
+            }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                if(actionState == ItemTouchHelper.ACTION_STATE_SWIPE){
+                    val itemView = viewHolder.itemView
+
+                    c.drawRoundRect(itemView.right.toFloat() + dX,itemView.top.toFloat(),itemView.right.toFloat(),itemView.bottom.toFloat(),5.0f,5.0f,paint)
+                    c.drawBitmap(icon,(itemView.right - 16.px - icon.width).toFloat(), (itemView.top + ( itemView.bottom - itemView.top - icon.height)/2).toFloat(), paint)
+
+                    val alpha = 1.0f - abs(dX) / itemView.width
+                    itemView.alpha = alpha
+                    itemView.translationX = dX
+
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
+                }
             }
         }).attachToRecyclerView(recipeList)
 
